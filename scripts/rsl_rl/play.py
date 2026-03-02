@@ -77,6 +77,7 @@ simulation_app = app_launcher.app
 
 import gymnasium as gym
 import os
+import shutil
 import time
 import torch
 import copy
@@ -363,6 +364,20 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
         export_policy_as_onnx(
             policy_nn, normalizer=normalizer, path=export_model_dir, filename="policy.onnx"
         )
+
+    # sync exported policy to data/policies/<subdir>/
+    _TASK_POLICY_DIRS = {
+        "E1-Flat": "direct",
+        "E1-Rough": "direct",
+        "E1-AttnEnc": "attn_enc",
+        "E1-Interrupt": "interrupt",
+    }
+    _policy_subdir = _TASK_POLICY_DIRS.get(task_name, "direct")
+    _project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    _sync_dir = os.path.join(_project_root, "data", "policies", _policy_subdir)
+    os.makedirs(_sync_dir, exist_ok=True)
+    shutil.copy(os.path.join(export_model_dir, "policy.onnx"), os.path.join(_sync_dir, "policy.onnx"))
+    print(f"[INFO] Policy synced to: {_sync_dir}/policy.onnx")
 
     if not args_cli.headless:
         from robolab.utils.keyboard import Keyboard

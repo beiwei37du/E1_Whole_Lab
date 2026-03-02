@@ -37,6 +37,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 import random
 from typing import TYPE_CHECKING
 
@@ -107,7 +108,13 @@ def update_rsl_rl_cfg(agent_cfg: RslRlBaseRunnerCfg, args_cli: argparse.Namespac
     if args_cli.resume is not None:
         agent_cfg.resume = args_cli.resume
     if args_cli.load_run is not None:
-        agent_cfg.load_run = args_cli.load_run
+        load_run = args_cli.load_run
+        # get_checkpoint_path() matches run directory names, not full paths.
+        if os.path.isdir(load_run):
+            load_run = os.path.basename(os.path.normpath(load_run))
+        elif os.path.isabs(load_run):
+            load_run = os.path.basename(os.path.normpath(load_run))
+        agent_cfg.load_run = load_run
     if args_cli.checkpoint is not None:
         agent_cfg.load_checkpoint = args_cli.checkpoint
     if args_cli.run_name is not None:

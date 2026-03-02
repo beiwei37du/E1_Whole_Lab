@@ -148,6 +148,7 @@ class NoiseCfg:
 
 @configclass
 class EventCfg:
+    # ===========  startup  ===========
     physics_material = EventTerm(
         func=mdp.randomize_rigid_body_material,
         mode="startup",
@@ -208,6 +209,16 @@ class EventCfg:
             "operation": "scale",
         },
     )
+    set_joint_limits = EventTerm(
+        func=mdp.set_joint_position_limits,
+        mode="startup",
+        params={
+            "asset_cfg": SceneEntityCfg("robot"),
+            "joint_limits": {},
+        },
+    )
+
+    # ==========  reset  ===========
     reset_base = EventTerm(
         func=mdp.reset_root_state_uniform,
         mode="reset",

@@ -7,17 +7,20 @@ from scipy.spatial.transform import Rotation as R
 from foxglove.schemas import FrameTransforms,FrameTransform,Vector3,Quaternion,Timestamp
 
 WORLD_FRAME_ID = "world"
+GROUND_FRAME_ID = "ground"
 BASE_FRAME_ID = "pelvis"
 
 # 数据保存目录
-FOXSHOW_DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "foxshow_data")
+FOXSHOW_DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "mujoco", "foxshow_data")
 
 class FoxShow:
-    def __init__(self, _urdf: str):
+    def __init__(self, _urdf: str, ground_z: float = 0.0):
         foxglove.set_log_level(logging.INFO)
         print(f"Loading URDF from {_urdf} ...")
         self.robot = URDF.load(_urdf)
         self.actuated_joint_names = self.robot.actuated_joint_names
+        # ground frame offset in world coordinates (meters)
+        self.ground_z = float(ground_z)
         self.server = foxglove.start_server()
         # 确保保存目录存在
         os.makedirs(FOXSHOW_DATA_DIR, exist_ok=True)
@@ -55,13 +58,22 @@ class FoxShow:
         "name": self.actuated_joint_names, "position": pos.tolist()})
 
     def __update_tf(self, _stamp, _trans, _quat, _pos, _vel):
-        transforms = [FrameTransform(
-            timestamp=_stamp,
-            parent_frame_id=WORLD_FRAME_ID,
-            child_frame_id=BASE_FRAME_ID,
-            translation=Vector3(x=_trans[0], y=_trans[1], z=_trans[2]),
-            rotation=Quaternion(x=_quat[0], y=_quat[1], z=_quat[2], w=_quat[3])
-        )]
+        transforms = [
+            FrameTransform(
+                timestamp=_stamp,
+                parent_frame_id=WORLD_FRAME_ID,
+                child_frame_id=GROUND_FRAME_ID,
+                translation=Vector3(x=0.0, y=0.0, z=self.ground_z),
+                rotation=Quaternion(x=0.0, y=0.0, z=0.0, w=1.0)
+            ),
+            FrameTransform(
+                timestamp=_stamp,
+                parent_frame_id=WORLD_FRAME_ID,
+                child_frame_id=BASE_FRAME_ID,
+                translation=Vector3(x=_trans[0], y=_trans[1], z=_trans[2]),
+                rotation=Quaternion(x=_quat[0], y=_quat[1], z=_quat[2], w=_quat[3])
+            ),
+        ]
         # World -> Base
         # Per-joint transforms
         for joint in self.robot.robot.joints:

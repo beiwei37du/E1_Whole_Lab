@@ -137,6 +137,7 @@ class ObservationsCfg():
         """Observations for policy group."""
 
         # # observation terms (order preserved)
+        # base_lin_vel = ObsTerm(func=mdp.base_lin_vel, noise=Unoise(n_min=-0.1, n_max=0.1))
         base_ang_vel = ObsTerm(func=mdp.base_ang_vel, noise=Unoise(n_min=-0.35, n_max=0.35))
         projected_gravity = ObsTerm(
             func=mdp.projected_gravity,
@@ -146,10 +147,10 @@ class ObservationsCfg():
         joint_pos = ObsTerm(func=mdp.joint_pos_rel, noise=Unoise(n_min=-0.03, n_max=0.03))
         joint_vel = ObsTerm(func=mdp.joint_vel_rel, noise=Unoise(n_min=-1.75, n_max=1.75))
         actions = ObsTerm(func=mdp.last_action)
-        
+
 
         def __post_init__(self):
-            self.history_length = 1
+            self.history_length = 10
             self.enable_corruption = True
             self.concatenate_terms = True
 
@@ -175,7 +176,7 @@ class ObservationsCfg():
         # )
 
         def __post_init__(self):
-            self.history_length = 3
+            self.history_length = 10
             self.enable_corruption = False
             self.concatenate_terms = True
     

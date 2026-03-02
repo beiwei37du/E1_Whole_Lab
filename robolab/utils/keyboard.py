@@ -1,3 +1,4 @@
+
 # Copyright (c) 2022-2025, The Isaac Lab Project Developers.
 # Copyright (c) 2025-2026, The RoboLab Project Developers.
 # All rights reserved.
@@ -76,12 +77,12 @@ class Keyboard(DeviceBase):
         # dictionary for additional callbacks
         self._additional_callbacks = dict()
         
-        print("[Keyboard] Velocity control initialized:")
-        print("  W/S: Forward/Backward")
-        print("  A/D: Left/Right turn")
-        print("  Q/E: Strafe left/right")
-        print("  X: Stop (zero velocity)")
-        print("  R: Reset environment")
+        print("[Keyboard] Velocity control initialized (Numpad):")
+        print("  8/2: Forward/Backward")
+        print("  4/6: Strafe left/right")
+        print("  7/9: Turn left/right")
+        print("  0:   Stop (zero velocity)")
+        print("  R:   Reset environment")
 
     def __del__(self):
         """Release the keyboard interface."""
@@ -120,34 +121,34 @@ class Keyboard(DeviceBase):
         if event.type == carb.input.KeyboardEventType.KEY_PRESS or event.type == carb.input.KeyboardEventType.KEY_REPEAT:
             if event.input.name in self._INPUT_KEY_MAPPING:
                 key = event.input.name
-                
+
                 # Reset environment
                 if key == "R":
                     self.env.episode_length_buf = torch.ones_like(self.env.episode_length_buf) * 1e6
                     print("[Keyboard] Environment reset triggered")
                 # Forward/Backward (lin_vel_x)
-                elif key == "W":
+                elif key == "NUMPAD_8":
                     self.lin_vel_x += self.lin_vel_step
                     self._update_commands()
-                elif key == "S":
+                elif key == "NUMPAD_2":
                     self.lin_vel_x -= self.lin_vel_step
                     self._update_commands()
-                # Turn left/right (ang_vel)
-                elif key == "Q":
-                    self.ang_vel += self.ang_vel_step
-                    self._update_commands()
-                elif key == "E":
-                    self.ang_vel -= self.ang_vel_step
-                    self._update_commands()
                 # Strafe left/right (lin_vel_y)
-                elif key == "A":
+                elif key == "NUMPAD_4":
                     self.lin_vel_y += self.lin_vel_step
                     self._update_commands()
-                elif key == "D":
+                elif key == "NUMPAD_6":
                     self.lin_vel_y -= self.lin_vel_step
                     self._update_commands()
+                # Turn left/right (ang_vel)
+                elif key == "NUMPAD_7":
+                    self.ang_vel += self.ang_vel_step
+                    self._update_commands()
+                elif key == "NUMPAD_9":
+                    self.ang_vel -= self.ang_vel_step
+                    self._update_commands()
                 # Stop (zero velocity)
-                elif key == "X":
+                elif key == "NUMPAD_0":
                     self.lin_vel_x = 0.0
                     self.lin_vel_y = 0.0
                     self.ang_vel = 0.0
@@ -160,21 +161,27 @@ class Keyboard(DeviceBase):
     def _update_commands(self):
         """Update the velocity commands in the environment."""
         env = self.env.unwrapped
-        commands = env.command_generator.command
-        commands[:, 0] = self.lin_vel_x  # lin_vel_x
-        commands[:, 1] = self.lin_vel_y  # lin_vel_y
-        commands[:, 2] = self.ang_vel    # ang_vel
+        if hasattr(env, "command_manager"):
+            # ManagerBasedRLEnv
+            cmd_term = env.command_manager._terms["base_velocity"]
+            commands = cmd_term.vel_command_b
+        else:
+            # DirectRLEnv
+            commands = env.command_generator.command
+        commands[:, 0] = self.lin_vel_x
+        commands[:, 1] = self.lin_vel_y
+        commands[:, 2] = self.ang_vel
         print(f"[Keyboard] Vel: vx={self.lin_vel_x:.2f}, vy={self.lin_vel_y:.2f}, ang_vel={self.ang_vel:.2f}")
 
     def _create_key_bindings(self):
         """Creates default key binding."""
         self._INPUT_KEY_MAPPING = {
-            "W": "forward",
-            "S": "backward", 
-            "Q": "turn_left",
-            "E": "turn_right",
-            "A": "strafe_left",
-            "D": "strafe_right",
-            "X": "stop",
-            "R": "reset_envs",
+            "NUMPAD_8": "forward",
+            "NUMPAD_2": "backward",
+            "NUMPAD_4": "strafe_left",
+            "NUMPAD_6": "strafe_right",
+            "NUMPAD_7": "turn_left",
+            "NUMPAD_9": "turn_right",
+            "NUMPAD_0": "stop",
+            "R":        "reset_envs",
         }

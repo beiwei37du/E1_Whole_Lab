@@ -30,30 +30,30 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from . import agents
+from . import mdp
 from .base_config import BaseAgentCfg, BaseEnvCfg, RewardCfg, HeightScannerCfg, SceneContextCfg, RobotCfg, ObsScalesCfg, NormalizationCfg, CommandRangesCfg, CommandsCfg, NoiseScalesCfg, NoiseCfg, EventCfg
 from .base_env import BaseEnv
 from .scene_cfg import SceneCfg
 from .terrain_generator_cfg import GRAVEL_TERRAINS_CFG, ROUGH_TERRAINS_CFG, ROUGH_HARD_TERRAINS_CFG
-from . import mdp
 
 import gymnasium as gym
 
 gym.register(
-    id="Atom01-Flat",
+    id="E1-Flat",
     entry_point=f"{__name__}.base_env:BaseEnv",
     disable_env_checker=True,
     kwargs={
-        "env_cfg_entry_point": f"{__name__}.atom01_env_cfg:ATOM01FlatEnvCfg",
-        "rsl_rl_cfg_entry_point": f"{agents.__name__}.atom01_agent_cfg:ATOM01FlatAgentCfg",
+        "env_cfg_entry_point": f"{__name__}.e1_env_cfg:E1FlatEnvCfg",
+        "rsl_rl_cfg_entry_point": f"{agents.__name__}.e1_agent_cfg:E1FlatAgentCfg",
     },
 )
 
 gym.register(
-    id="Atom01-Rough",
+    id="E1-Rough",
     entry_point=f"{__name__}.base_env:BaseEnv",
     disable_env_checker=True,
     kwargs={
-        "env_cfg_entry_point": f"{__name__}.atom01_env_cfg:ATOM01RoughEnvCfg",
-        "rsl_rl_cfg_entry_point": f"{agents.__name__}.atom01_agent_cfg:ATOM01RoughAgentCfg",
+        "env_cfg_entry_point": f"{__name__}.e1_env_cfg:E1RoughEnvCfg",
+        "rsl_rl_cfg_entry_point": f"{agents.__name__}.e1_agent_cfg:E1RoughAgentCfg",
     },
 )

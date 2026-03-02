@@ -83,6 +83,7 @@ simulation_app = app_launcher.app
 
 import gymnasium as gym
 import os
+import shutil
 import time
 import torch
 
@@ -227,6 +228,13 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
     export_model_dir = os.path.join(os.path.dirname(resume_path), "exported")
     export_policy_as_jit(policy_nn, normalizer=normalizer, path=export_model_dir, filename="policy.pt")
     export_policy_as_onnx(policy_nn, normalizer=normalizer, path=export_model_dir, filename="policy.onnx")
+
+    # sync exported policy to data/policies/bm/
+    _project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    _sync_dir = os.path.join(_project_root, "data", "policies", "bm")
+    os.makedirs(_sync_dir, exist_ok=True)
+    shutil.copy(os.path.join(export_model_dir, "policy.onnx"), os.path.join(_sync_dir, "policy.onnx"))
+    print(f"[INFO] Policy synced to: {_sync_dir}/policy.onnx")
 
     dt = env.unwrapped.step_dt
 

@@ -33,21 +33,21 @@ import gymnasium as gym
 from . import agents
 
 gym.register(
-    id="Atom01-AMP",
+    id="E1-AMP",
     entry_point=f"{__name__}.amp_env:AmpEnv",
     disable_env_checker=True,
     kwargs={
-        "env_cfg_entry_point": f"{__name__}.atom01_amp_env_cfg:Atom01AmpEnvCfg",
-        "rsl_rl_cfg_entry_point": f"{agents.__name__}.atom01_amp_agent_cfg:RslRlOnPolicyRunnerAmpCfg",
+        "env_cfg_entry_point": f"{__name__}.e1_amp_env_cfg:E1AmpEnvCfg",
+        "rsl_rl_cfg_entry_point": f"{agents.__name__}.e1_amp_agent_cfg:E1RslRlOnPolicyRunnerAmpCfg",
     },
 )
 
 gym.register(
-    id="Atom01-AMP-Play",
+    id="E1-AMP-Play",
     entry_point=f"{__name__}.amp_env:AmpEnv",
     disable_env_checker=True,
     kwargs={
-        "env_cfg_entry_point": f"{__name__}.atom01_amp_env_cfg:Atom01AmpEnvCfg_PLAY",
-        "rsl_rl_cfg_entry_point": f"{agents.__name__}.atom01_amp_agent_cfg:RslRlOnPolicyRunnerAmpCfg",
+        "env_cfg_entry_point": f"{__name__}.e1_amp_env_cfg:E1AmpEnvCfg_PLAY",
+        "rsl_rl_cfg_entry_point": f"{agents.__name__}.e1_amp_agent_cfg:E1RslRlOnPolicyRunnerAmpCfg",
     },
 )

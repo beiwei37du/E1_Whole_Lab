@@ -35,7 +35,7 @@
 .. code-block:: bash
 
     # Usage
-    python csv_to_npz.py -f path_to_input.csv --input_fps 60
+    python csv_to_npz.py -f path_to_input.csv --input_fps 100
 """
 
 """Launch Isaac Sim Simulator first."""
@@ -84,7 +84,7 @@ import torch
 ##
 # Pre-defined configs
 ##
-from robolab.assets.robots import ATOM01_CFG
+from robolab.assets.robots import E1_12DOF_CFG
 
 import isaaclab.sim as sim_utils
 from isaaclab.assets import ArticulationCfg, AssetBaseCfg
@@ -112,7 +112,7 @@ class ReplayMotionsSceneCfg(InteractiveSceneCfg):
     )
 
     # articulation
-    robot: ArticulationCfg = ATOM01_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
+    robot: ArticulationCfg = E1_12DOF_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
 
 
 class MotionLoader:
@@ -266,29 +266,27 @@ def run_simulator(sim: sim_utils.SimulationContext, scene: InteractiveScene):
     # Extract scene entities
     robot = scene["robot"]
     joint_sdk_names = [
-        'left_thigh_yaw_joint', 
-        'left_thigh_roll_joint', 
-        'left_thigh_pitch_joint', 
-        'left_knee_joint', 
-        'left_ankle_pitch_joint', 
-        'left_ankle_roll_joint', 
-        'right_thigh_yaw_joint', 
-        'right_thigh_roll_joint', 
-        'right_thigh_pitch_joint', 
-        'right_knee_joint', 
-        'right_ankle_pitch_joint', 
-        'right_ankle_roll_joint',
-        'torso_joint', 
-        'left_arm_pitch_joint', 
-        'left_arm_roll_joint', 
-        'left_arm_yaw_joint', 
-        'left_elbow_pitch_joint', 
-        'left_elbow_yaw_joint', 
-        'right_arm_pitch_joint', 
-        'right_arm_roll_joint', 
-        'right_arm_yaw_joint', 
-        'right_elbow_pitch_joint', 
-        'right_elbow_yaw_joint'
+        "left_hip_pitch_joint",
+        "right_hip_pitch_joint",
+        "waist_yaw_joint",
+        "left_hip_roll_joint",
+        "right_hip_roll_joint",
+        "left_shoulder_pitch_joint",
+        "right_shoulder_pitch_joint",
+        "left_hip_yaw_joint",
+        "right_hip_yaw_joint",
+        "left_shoulder_roll_joint",
+        "right_shoulder_roll_joint",
+        "left_knee_joint",
+        "right_knee_joint",
+        "left_shoulder_yaw_joint",
+        "right_shoulder_yaw_joint",
+        "left_ankle_pitch_joint",
+        "right_ankle_pitch_joint",
+        "left_elbow_joint",
+        "right_elbow_joint",
+        "left_ankle_roll_joint",
+        "right_ankle_roll_joint",
     ]
     robot_joint_indexes = robot.find_joints(joint_sdk_names, preserve_order=True)[0]
 

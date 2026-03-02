@@ -32,7 +32,8 @@
 from __future__ import annotations
 
 import os
-import numpy as np
+import sys
+import importlib
 import enum
 import joblib
 import torch
@@ -69,6 +70,31 @@ class MotionDataTerm(ManagerTermBase):
             f"Motion data directory {cfg.motion_data_dir} does not exist."
             
         self._load_motion_data()
+
+    @staticmethod
+    def _load_pickle_with_numpy_compat(path: str):
+        """Load pickle data while tolerating NumPy core module path changes across versions."""
+        try:
+            return joblib.load(path)
+        except ModuleNotFoundError as err:
+            missing_module = getattr(err, "name", "")
+            if missing_module == "numpy._core":
+                # Pickles created with NumPy>=2 may reference numpy._core.
+                try:
+                    numpy_core = importlib.import_module("numpy.core")
+                except ModuleNotFoundError:
+                    raise err
+                sys.modules.setdefault("numpy._core", numpy_core)
+            elif missing_module == "numpy.core":
+                # Pickles created with NumPy<2 may reference numpy.core.
+                try:
+                    numpy_core = importlib.import_module("numpy._core")
+                except ModuleNotFoundError:
+                    raise err
+                sys.modules.setdefault("numpy.core", numpy_core)
+            else:
+                raise
+            return joblib.load(path)
         
     def _load_motion_data(self):
         # list the motion data files in the directory
@@ -103,7 +129,7 @@ class MotionDataTerm(ManagerTermBase):
             # load the motion data file
             motion_path = os.path.join(self.cfg.motion_data_dir, motion_file)
             print(f"[Motion Data Manager] Loading motion data from {motion_path}...")
-            motion_raw_data = joblib.load(motion_path)
+            motion_raw_data = self._load_pickle_with_numpy_compat(motion_path)
             if not isinstance(motion_raw_data, dict):
                 raise ValueError(f"Motion data file {motion_file} does not contain a valid dictionary.")
             

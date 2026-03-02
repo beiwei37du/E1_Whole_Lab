@@ -59,11 +59,13 @@ from isaaclab.app import AppLauncher
 
 # append AppLauncher cli args
 parser = argparse.ArgumentParser(description="Batch retarget GMR -> Legged Lab (multiple files).")
+# --robot 参数
 parser.add_argument(
     "--robot",
     type=str,
-    default="atom01", 
-    help="Robot name to use (default: atom01)",
+    default="e1_12dof",
+    choices=["e1_21dof", "e1_12dof"],
+    help="The robot name to be used.",
 )
 parser.add_argument(
     "--input_dir",
@@ -106,11 +108,17 @@ import warnings
 import isaaclab.sim as sim_utils
 from isaaclab.scene import InteractiveScene
 
-# load robot cfg as single_retarget does
-if args_cli.robot == "atom01":
-    from legged_lab.assets.roboparty import ATOM01_CFG as ROBOT_CFG
-else:
-    raise ValueError(f"Robot {args_cli.robot} not supported.")
+from robolab.assets.robots import E1_12DOF_CFG, E1_21DOF_CFG
+
+ROBOT_CFG_MAP = {
+    "e1_21dof": E1_21DOF_CFG,
+    "e1_12dof": E1_12DOF_CFG,
+}
+
+if args_cli.robot not in ROBOT_CFG_MAP:
+    raise ValueError(f"Robot {args_cli.robot} not supported. Supported: {list(ROBOT_CFG_MAP.keys())}")
+ROBOT_CFG = ROBOT_CFG_MAP[args_cli.robot]
+
 
 # import functions from gmr_to_lab (must be in same directory)
 script_dir = Path(__file__).parent

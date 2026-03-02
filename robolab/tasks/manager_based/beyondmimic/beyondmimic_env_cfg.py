@@ -69,25 +69,25 @@ VELOCITY_RANGE = {
 }
 
 ori_body_names=[
-    'left_thigh_yaw_link', 
-    'right_thigh_yaw_link', 
-    'torso_link', 
-    'left_thigh_roll_link', 
-    'right_thigh_roll_link', 
-    'left_arm_pitch_link', 
-    'right_arm_pitch_link', 
-    'left_thigh_pitch_link', 
-    'right_thigh_pitch_link', 
-    'left_arm_roll_link', 
-    'right_arm_roll_link', 
-    'left_knee_link', 
-    'right_knee_link', 
-    'left_arm_yaw_link', 
-    'right_arm_yaw_link', 
-    'left_elbow_pitch_link', 
-    'right_elbow_pitch_link', 
-    'left_elbow_yaw_link', 
-    'right_elbow_yaw_link'
+    "left_hip_pitch_link",
+    "right_hip_pitch_link",
+    "torso_link",
+    "left_hip_roll_link",
+    "right_hip_roll_link",
+    "left_shoulder_pitch_link",
+    "right_shoulder_pitch_link",
+    "left_hip_yaw_link",
+    "right_hip_yaw_link",
+    "left_shoulder_roll_link",
+    "right_shoulder_roll_link",
+    "left_knee_link",
+    "right_knee_link",
+    "left_shoulder_yaw_link",
+    "right_shoulder_yaw_link",
+    "left_ankle_pitch_link",
+    "right_ankle_pitch_link",
+    "left_elbow_link",
+    "right_elbow_link",
 ]
 
 @configclass
@@ -190,6 +190,7 @@ class ObservationsCfg:
         actions = ObsTerm(func=mdp.last_action)
 
         def __post_init__(self):
+            self.history_length = 10
             self.enable_corruption = True
             self.concatenate_terms = True
 
@@ -206,6 +207,11 @@ class ObservationsCfg:
         joint_pos = ObsTerm(func=mdp.joint_pos_rel)
         joint_vel = ObsTerm(func=mdp.joint_vel_rel)
         actions = ObsTerm(func=mdp.last_action)
+
+        def __post_init__(self):
+            self.history_length = 10
+            self.enable_corruption = False
+            self.concatenate_terms = True
 
     # observation groups
     policy: PolicyCfg = PolicyCfg()

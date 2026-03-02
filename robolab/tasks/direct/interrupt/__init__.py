@@ -1,3 +1,4 @@
+
 # Copyright (c) 2022-2025, The Isaac Lab Project Developers.
 # Copyright (c) 2025-2026, The RoboLab Project Developers.
 # All rights reserved.
@@ -34,11 +35,11 @@ import gymnasium as gym
 from . import agents
 
 gym.register(
-    id="Atom01-Interrupt",
-    entry_point=f"{__name__}.interrupt_env:InterruptEnv",
+    id="E1-Interrupt",
+    entry_point=f"{__name__}.e1_interrupt_env:E1InterruptEnv",
     disable_env_checker=True,
     kwargs={
-        "env_cfg_entry_point": f"{__name__}.atom01_interrupt_env_cfg:ATOM01InterruptEnvCfg",
-        "rsl_rl_cfg_entry_point": f"{agents.__name__}.atom01_interrupt_agent_cfg:ATOM01InterruptAgentCfg",
+        "env_cfg_entry_point": f"{__name__}.e1_interrupt_env_cfg:E1InterruptEnvCfg",
+        "rsl_rl_cfg_entry_point": f"{agents.__name__}.e1_interrupt_agent_cfg:E1InterruptAgentCfg",
     },
 )

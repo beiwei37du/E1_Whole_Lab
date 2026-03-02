@@ -35,7 +35,7 @@
 .. code-block:: bash
 
     # Usage
-    python replay_npz.py -f path_to_motion.npz
+    python scripts/tools/beyondmimic/replay_npz.py --robot e1_21dof -f data/motions/e1_bm/MJ_dance.npz --print-first-frame
 """
 
 """Launch Isaac Sim Simulator first."""
@@ -49,6 +49,21 @@ from isaaclab.app import AppLauncher
 # add argparse arguments
 parser = argparse.ArgumentParser(description="Replay converted motions.")
 parser.add_argument("--file", "-f", type=str, required=True)
+parser = argparse.ArgumentParser(description="Replay converted motions.")
+parser.add_argument("--file", "-f", type=str, required=True)
+parser.add_argument(
+    "--robot",
+    type=str,
+    default="e1_12dof",
+    choices=["e1_21dof", "e1_12dof"],
+    help="Robot type for replay.",
+)
+#  打印第一帧的关节位置作为训练的初始位置
+parser.add_argument(
+    "--print-first-frame",
+    action="store_true",
+    help="Print joint positions of frame 0 before replay starts.",
+)
 
 # append AppLauncher cli args
 AppLauncher.add_app_launcher_args(parser)
@@ -64,7 +79,7 @@ simulation_app = app_launcher.app
 ##
 # Pre-defined configs
 ##
-from robolab.assets.robots import ATOM01_CFG
+from robolab.assets.robots import E1_12DOF_CFG, E1_21DOF_CFG
 from robolab.tasks.manager_based.beyondmimic.mdp import MotionLoader
 
 import isaaclab.sim as sim_utils
@@ -74,6 +89,10 @@ from isaaclab.sim import SimulationContext
 from isaaclab.utils import configclass
 from isaaclab.utils.assets import ISAAC_NUCLEUS_DIR
 
+ROBOT_CFG_MAP = {
+    "e1_21dof": E1_21DOF_CFG,
+    "e1_12dof": E1_12DOF_CFG,
+}
 
 @configclass
 class ReplayMotionsSceneCfg(InteractiveSceneCfg):
@@ -90,7 +109,7 @@ class ReplayMotionsSceneCfg(InteractiveSceneCfg):
     )
 
     # articulation
-    robot: ArticulationCfg = ATOM01_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
+    robot: ArticulationCfg = E1_12DOF_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
 
 
 def run_simulator(sim: sim_utils.SimulationContext, scene: InteractiveScene):
@@ -104,6 +123,23 @@ def run_simulator(sim: sim_utils.SimulationContext, scene: InteractiveScene):
         torch.tensor([0], dtype=torch.long, device=sim.device),
         sim.device,
     )
+    robot_dof = robot.data.default_joint_pos.shape[1]
+    motion_dof = motion.joint_pos.shape[1]
+    if motion_dof != robot_dof:
+        raise ValueError(
+            f"DOF mismatch: motion has {motion_dof}, robot '{args_cli.robot}' has {robot_dof}. "
+            f"Please use a matching npz file."
+        )
+
+    if args_cli.print_first_frame:
+        first_joint_pos = motion.joint_pos[0].detach().cpu().numpy()
+        joint_names = getattr(robot, "joint_names", None)
+        if joint_names is None or len(joint_names) != len(first_joint_pos):
+            joint_names = [f"joint_{i}" for i in range(len(first_joint_pos))]
+        print(f"[INFO] First frame joint_pos ({args_cli.file})")
+        for name, value in zip(joint_names, first_joint_pos):
+            print(f"  {name:28s} {value: .6f}")
+
     time_steps = torch.zeros(scene.num_envs, dtype=torch.long, device=sim.device)
 
     # Simulation loop
@@ -134,6 +170,7 @@ def main():
     sim = SimulationContext(sim_cfg)
 
     scene_cfg = ReplayMotionsSceneCfg(num_envs=1, env_spacing=2.0)
+    scene_cfg.robot = ROBOT_CFG_MAP[args_cli.robot].replace(prim_path="{ENV_REGEX_NS}/Robot")
     scene = InteractiveScene(scene_cfg)
     sim.reset()
     # Run the simulator

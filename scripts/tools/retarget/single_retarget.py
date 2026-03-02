@@ -104,11 +104,12 @@ from isaaclab.app import AppLauncher
 
 # add argparse arguments
 parser = argparse.ArgumentParser(description="Visualization of retargeted data.")
+# --robot 参数
 parser.add_argument(
-    "--robot", 
+    "--robot",
     type=str,
-    default="atom01",
-    choices=["atom01"],
+    default="e1_12dof",
+    choices=["e1_21dof", "e1_12dof"],
     help="The robot name to be used.",
 )
 parser.add_argument(
@@ -174,10 +175,17 @@ from isaaclab.scene import InteractiveScene
 ##
 # Pre-defined configs
 ##
-if args_cli.robot == "atom01":
-    from legged_lab.assets.roboparty import ATOM01_CFG as ROBOT_CFG
-else:
-    raise ValueError(f"Robot {args_cli.robot} not supported.")
+from robolab.assets.robots import E1_12DOF_CFG, E1_21DOF_CFG
+
+ROBOT_CFG_MAP = {
+    "e1_21dof": E1_21DOF_CFG,
+    "e1_12dof": E1_12DOF_CFG,
+}
+
+if args_cli.robot not in ROBOT_CFG_MAP:
+    raise ValueError(f"Robot {args_cli.robot} not supported. Supported: {list(ROBOT_CFG_MAP.keys())}")
+ROBOT_CFG = ROBOT_CFG_MAP[args_cli.robot]
+
 
 # Import functions and classes from gmr_to_lab.py
 # Add the script directory to path to allow imports
@@ -255,3 +263,16 @@ if __name__ == "__main__":
     print("Closing simulation app...")
     simulation_app.close()
     print(f"✅ Simulation app closed.")
+
+
+'''
+
+  python scripts/tools/retarget/single_retarget.py \
+    --robot e1_12dof \
+    --input_file data/motions/e1_gmr/suibu.pkl \
+    --output_file data/motions/e1_lab/suibu.pkl \
+    --config_file scripts/tools/retarget/config/e1_12dof.yaml \
+    --loop clamp \
+    --headless \
+    --device cuda:0
+'''

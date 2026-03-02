@@ -1,0 +1,308 @@
+{
+  "configById": {
+    "Plot!e12p00": {
+      "paths": [
+        {"timestampMethod": "receiveTime", "value": "/joint_target.position[0]", "enabled": true, "color": "#4e98e2", "id": "tgt"},
+        {"timestampMethod": "receiveTime", "value": "/joint_states.position[0]", "enabled": true, "color": "#f5774d", "id": "sta", "label": "L_hip_pitch"}
+      ],
+      "showXAxisLabels": true, "showYAxisLabels": true, "showLegend": true,
+      "legendDisplay": "floating", "showPlotValuesInLegend": false,
+      "isSynced": true, "xAxisVal": "timestamp", "sidebarDimension": 240
+    },
+    "Plot!e12p01": {
+      "paths": [
+        {"timestampMethod": "receiveTime", "value": "/joint_target.position[1]", "enabled": true, "color": "#4e98e2", "id": "tgt"},
+        {"timestampMethod": "receiveTime", "value": "/joint_states.position[1]", "enabled": true, "color": "#f5774d", "id": "sta", "label": "L_hip_roll"}
+      ],
+      "showXAxisLabels": true, "showYAxisLabels": true, "showLegend": true,
+      "legendDisplay": "floating", "showPlotValuesInLegend": false,
+      "isSynced": true, "xAxisVal": "timestamp", "sidebarDimension": 240
+    },
+    "Plot!e12p02": {
+      "paths": [
+        {"timestampMethod": "receiveTime", "value": "/joint_target.position[2]", "enabled": true, "color": "#4e98e2", "id": "tgt"},
+        {"timestampMethod": "receiveTime", "value": "/joint_states.position[2]", "enabled": true, "color": "#f5774d", "id": "sta", "label": "L_hip_yaw"}
+      ],
+      "showXAxisLabels": true, "showYAxisLabels": true, "showLegend": true,
+      "legendDisplay": "floating", "showPlotValuesInLegend": false,
+      "isSynced": true, "xAxisVal": "timestamp", "sidebarDimension": 240
+    },
+    "Plot!e12p03": {
+      "paths": [
+        {"timestampMethod": "receiveTime", "value": "/joint_target.position[3]", "enabled": true, "color": "#4e98e2", "id": "tgt"},
+        {"timestampMethod": "receiveTime", "value": "/joint_states.position[3]", "enabled": true, "color": "#f5774d", "id": "sta", "label": "L_knee"}
+      ],
+      "showXAxisLabels": true, "showYAxisLabels": true, "showLegend": true,
+      "legendDisplay": "floating", "showPlotValuesInLegend": false,
+      "isSynced": true, "xAxisVal": "timestamp", "sidebarDimension": 240
+    },
+    "Plot!e12p04": {
+      "paths": [
+        {"timestampMethod": "receiveTime", "value": "/joint_target.position[4]", "enabled": true, "color": "#4e98e2", "id": "tgt"},
+        {"timestampMethod": "receiveTime", "value": "/joint_states.position[4]", "enabled": true, "color": "#f5774d", "id": "sta", "label": "L_ank_pitch"}
+      ],
+      "showXAxisLabels": true, "showYAxisLabels": true, "showLegend": true,
+      "legendDisplay": "floating", "showPlotValuesInLegend": false,
+      "isSynced": true, "xAxisVal": "timestamp", "sidebarDimension": 240
+    },
+    "Plot!e12p05": {
+      "paths": [
+        {"timestampMethod": "receiveTime", "value": "/joint_target.position[5]", "enabled": true, "color": "#4e98e2", "id": "tgt"},
+        {"timestampMethod": "receiveTime", "value": "/joint_states.position[5]", "enabled": true, "color": "#f5774d", "id": "sta", "label": "L_ank_roll"}
+      ],
+      "showXAxisLabels": true, "showYAxisLabels": true, "showLegend": true,
+      "legendDisplay": "floating", "showPlotValuesInLegend": false,
+      "isSynced": true, "xAxisVal": "timestamp", "sidebarDimension": 240
+    },
+    "Plot!e12p06": {
+      "paths": [
+        {"timestampMethod": "receiveTime", "value": "/joint_target.position[6]", "enabled": true, "color": "#4e98e2", "id": "tgt"},
+        {"timestampMethod": "receiveTime", "value": "/joint_states.position[6]", "enabled": true, "color": "#f5774d", "id": "sta", "label": "R_hip_pitch"}
+      ],
+      "showXAxisLabels": true, "showYAxisLabels": true, "showLegend": true,
+      "legendDisplay": "floating", "showPlotValuesInLegend": false,
+      "isSynced": true, "xAxisVal": "timestamp", "sidebarDimension": 240
+    },
+    "Plot!e12p07": {
+      "paths": [
+        {"timestampMethod": "receiveTime", "value": "/joint_target.position[7]", "enabled": true, "color": "#4e98e2", "id": "tgt"},
+        {"timestampMethod": "receiveTime", "value": "/joint_states.position[7]", "enabled": true, "color": "#f5774d", "id": "sta", "label": "R_hip_roll"}
+      ],
+      "showXAxisLabels": true, "showYAxisLabels": true, "showLegend": true,
+      "legendDisplay": "floating", "showPlotValuesInLegend": false,
+      "isSynced": true, "xAxisVal": "timestamp", "sidebarDimension": 240
+    },
+    "Plot!e12p08": {
+      "paths": [
+        {"timestampMethod": "receiveTime", "value": "/joint_target.position[8]", "enabled": true, "color": "#4e98e2", "id": "tgt"},
+        {"timestampMethod": "receiveTime", "value": "/joint_states.position[8]", "enabled": true, "color": "#f5774d", "id": "sta", "label": "R_hip_yaw"}
+      ],
+      "showXAxisLabels": true, "showYAxisLabels": true, "showLegend": true,
+      "legendDisplay": "floating", "showPlotValuesInLegend": false,
+      "isSynced": true, "xAxisVal": "timestamp", "sidebarDimension": 240
+    },
+    "Plot!e12p09": {
+      "paths": [
+        {"timestampMethod": "receiveTime", "value": "/joint_target.position[9]", "enabled": true, "color": "#4e98e2", "id": "tgt"},
+        {"timestampMethod": "receiveTime", "value": "/joint_states.position[9]", "enabled": true, "color": "#f5774d", "id": "sta", "label": "R_knee"}
+      ],
+      "showXAxisLabels": true, "showYAxisLabels": true, "showLegend": true,
+      "legendDisplay": "floating", "showPlotValuesInLegend": false,
+      "isSynced": true, "xAxisVal": "timestamp", "sidebarDimension": 240
+    },
+    "Plot!e12p10": {
+      "paths": [
+        {"timestampMethod": "receiveTime", "value": "/joint_target.position[10]", "enabled": true, "color": "#4e98e2", "id": "tgt"},
+        {"timestampMethod": "receiveTime", "value": "/joint_states.position[10]", "enabled": true, "color": "#f5774d", "id": "sta", "label": "R_ank_pitch"}
+      ],
+      "showXAxisLabels": true, "showYAxisLabels": true, "showLegend": true,
+      "legendDisplay": "floating", "showPlotValuesInLegend": false,
+      "isSynced": true, "xAxisVal": "timestamp", "sidebarDimension": 240
+    },
+    "Plot!e12p11": {
+      "paths": [
+        {"timestampMethod": "receiveTime", "value": "/joint_target.position[11]", "enabled": true, "color": "#4e98e2", "id": "tgt"},
+        {"timestampMethod": "receiveTime", "value": "/joint_states.position[11]", "enabled": true, "color": "#f5774d", "id": "sta", "label": "R_ank_roll"}
+      ],
+      "showXAxisLabels": true, "showYAxisLabels": true, "showLegend": true,
+      "legendDisplay": "floating", "showPlotValuesInLegend": false,
+      "isSynced": true, "xAxisVal": "timestamp", "sidebarDimension": 240
+    },
+    "Tab!e12main": {
+      "activeTabIdx": 0,
+      "tabs": [
+        {
+          "title": "Left Leg",
+          "layout": {
+            "direction": "row",
+            "first": {
+              "direction": "column",
+              "first": "Plot!e12p00",
+              "second": "Plot!e12p01"
+            },
+            "second": {
+              "direction": "row",
+              "first": {
+                "direction": "column",
+                "first": "Plot!e12p02",
+                "second": "Plot!e12p03"
+              },
+              "second": {
+                "direction": "column",
+                "first": "Plot!e12p04",
+                "second": "Plot!e12p05"
+              }
+            }
+          }
+        },
+        {
+          "title": "Right Leg",
+          "layout": {
+            "direction": "row",
+            "first": {
+              "direction": "column",
+              "first": "Plot!e12p06",
+              "second": "Plot!e12p07"
+            },
+            "second": {
+              "direction": "row",
+              "first": {
+                "direction": "column",
+                "first": "Plot!e12p08",
+                "second": "Plot!e12p09"
+              },
+              "second": {
+                "direction": "column",
+                "first": "Plot!e12p10",
+                "second": "Plot!e12p11"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "RawMessages!e12tgt": {
+      "diffEnabled": false,
+      "diffMethod": "custom",
+      "diffTopicPath": "",
+      "showFullMessageForDiff": false,
+      "topicPath": "/joint_target",
+      "fontSize": 12
+    },
+    "RawMessages!e12sta": {
+      "diffEnabled": false,
+      "diffMethod": "custom",
+      "diffTopicPath": "",
+      "showFullMessageForDiff": false,
+      "topicPath": "/joint_states",
+      "fontSize": 12
+    },
+    "RawMessages!e12tf": {
+      "diffEnabled": false,
+      "diffMethod": "custom",
+      "diffTopicPath": "",
+      "showFullMessageForDiff": false,
+      "topicPath": "/tf",
+      "fontSize": 12
+    },
+    "3D!e12view": {
+      "cameraState": {
+        "perspective": true,
+        "distance": 4.0,
+        "phi": 60.0,
+        "thetaOffset": -150.0,
+        "targetOffset": [0, 0, 0],
+        "target": [0, 0, 0],
+        "targetOrientation": [0, 0, 0, 1],
+        "fovy": 45,
+        "near": 0.5,
+        "far": 5000,
+        "logDepth": false
+      },
+      "followMode": "follow-position",
+      "followTf": "world",
+      "scene": {
+        "meshUpAxis": "z_up",
+        "enableStats": false,
+        "syncCamera": false,
+        "ignoreColladaUpAxis": false,
+        "transforms": {"visible": true, "editable": false, "showLabel": false},
+        "backgroundColor": "#93d7ff"
+      },
+      "transforms": {
+        "frame:world":                    {"visible": true},
+        "frame:pelvis":                   {"visible": true},
+        "frame:left_hip_pitch_link":      {"visible": false},
+        "frame:left_hip_roll_link":       {"visible": false},
+        "frame:left_hip_yaw_link":        {"visible": false},
+        "frame:left_knee_link":           {"visible": false},
+        "frame:left_ankle_pitch_link":    {"visible": false},
+        "frame:left_ankle_roll_link":     {"visible": false},
+        "frame:right_hip_pitch_link":     {"visible": false},
+        "frame:right_hip_roll_link":      {"visible": false},
+        "frame:right_hip_yaw_link":       {"visible": false},
+        "frame:right_knee_link":          {"visible": false},
+        "frame:right_ankle_pitch_link":   {"visible": false},
+        "frame:right_ankle_roll_link":    {"visible": false},
+        "frame:torso_link":               {"visible": false},
+        "frame:left_shoulder_pitch_link": {"visible": false},
+        "frame:left_shoulder_roll_link":  {"visible": false},
+        "frame:left_shoulder_yaw_link":   {"visible": false},
+        "frame:right_shoulder_pitch_link":{"visible": false},
+        "frame:right_shoulder_roll_link": {"visible": false},
+        "frame:right_shoulder_yaw_link":  {"visible": false}
+      },
+      "topics": {},
+      "layers": {
+        "grid-main": {
+          "visible": true,
+          "drawBehind": false,
+          "frameLocked": true,
+          "label": "Grid",
+          "instanceId": "grid-main",
+          "layerId": "foxglove.Grid",
+          "size": 30,
+          "divisions": 100,
+          "lineWidth": 1,
+          "color": "#004302ff",
+          "position": [0, 0, 0],
+          "rotation": [0, 0, 0],
+          "order": 1
+        },
+        "urdf-e12": {
+          "displayMode": "auto",
+          "fallbackColor": "#ffffff",
+          "showAxis": false,
+          "axisScale": 1,
+          "showOutlines": true,
+          "opacity": 1,
+          "visible": true,
+          "frameLocked": true,
+          "instanceId": "urdf-e12",
+          "label": "E1_12dof URDF",
+          "layerId": "foxglove.Urdf",
+          "sourceType": "filePath",
+          "url": "",
+          "filePath": "/home/hwz/GIT-USST/Lab/roboparty/E1_Whole_Lab/data/robots/droidrobot/E1/E1_12dof.urdf",
+          "parameter": "",
+          "topic": "",
+          "framePrefix": "",
+          "order": 2
+        }
+      },
+      "publish": {
+        "type": "point",
+        "poseTopic": "/move_base_simple/goal",
+        "pointTopic": "/clicked_point",
+        "poseEstimateTopic": "/initialpose",
+        "poseEstimateXDeviation": 0.5,
+        "poseEstimateYDeviation": 0.5,
+        "poseEstimateThetaDeviation": 0.26179939
+      },
+      "imageMode": {}
+    }
+  },
+  "globalVariables": {},
+  "userNodes": {},
+  "playbackConfig": {"speed": 1},
+  "layout": {
+    "direction": "row",
+    "first": "Tab!e12main",
+    "second": {
+      "direction": "row",
+      "first": {
+        "direction": "column",
+        "first": {
+          "direction": "row",
+          "first": "RawMessages!e12tgt",
+          "second": "RawMessages!e12sta"
+        },
+        "second": "RawMessages!e12tf",
+        "splitPercentage": 74.0
+      },
+      "second": "3D!e12view",
+      "splitPercentage": 55.0
+    },
+    "splitPercentage": 40.0
+  }
+}

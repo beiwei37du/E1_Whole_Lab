@@ -29,5 +29,36 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from . import atom01
-from . import e1
+import torch
+
+from .interrupt_env import InterruptEnv
+
+
+class E1InterruptEnv(InterruptEnv):
+    """Interrupt env for E1 12-DOF (leg-only robot).
+
+    Overrides ``uniform_interrupt_resample`` to remove ATOM01-specific
+    arm kinematic chain clipping that assumes 8 arm joints with coupled
+    roll/yaw constraints.  For E1, the interrupt joints (hip yaw + hip roll)
+    are sampled independently within their URDF limits.
+    """
+
+    def uniform_interrupt_resample(self) -> torch.Tensor:
+        """Sample independent uniform targets for each E1 interrupt joint."""
+        targets = (
+            self.interrupt_scale
+            * torch.rand(
+                (self.num_envs, len(self.cfg.interrupt.interrupt_joint_names)),
+                device=self.device,
+            )
+            + self.interrupt_lower_bound
+        )
+
+        default_pos = self.robot.data.default_joint_pos[:, self.interrupt_joint_cfg.joint_ids]
+        limits = self.robot.data.default_joint_pos_limits[:, self.interrupt_joint_cfg.joint_ids, :]
+
+        return torch.clamp(
+            targets - default_pos,
+            limits[..., 0] - default_pos,
+            limits[..., 1] - default_pos,
+        )

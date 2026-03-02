@@ -34,11 +34,11 @@ import gymnasium as gym
 from . import agents
 
 gym.register(
-    id="Atom01-AttnEnc",
+    id="E1-AttnEnc",
     entry_point=f"{__name__}.attn_enc_env:AttnEncEnv",
     disable_env_checker=True,
     kwargs={
-        "env_cfg_entry_point": f"{__name__}.atom01_attn_enc_env_cfg:ATOM01AttnEncEnvCfg",
-        "rsl_rl_cfg_entry_point": f"{agents.__name__}.atom01_attn_enc_agent_cfg:ATOM01AttnEncAgentCfg",
+        "env_cfg_entry_point": f"{__name__}.e1_attn_enc_env_cfg:E1AttnEncEnvCfg",
+        "rsl_rl_cfg_entry_point": f"{agents.__name__}.e1_attn_enc_agent_cfg:E1AttnEncAgentCfg",
     },
 )

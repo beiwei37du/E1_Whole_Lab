@@ -87,6 +87,7 @@ simulation_app = app_launcher.app
 import copy
 import gymnasium as gym
 import os
+import shutil
 import time
 import torch
 
@@ -222,6 +223,10 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
     env_cfg.seed = agent_cfg.seed
     env_cfg.sim.device = args_cli.device if args_cli.device is not None else env_cfg.sim.device
 
+    if not args_cli.headless and isinstance(env_cfg, ManagerBasedRLEnvCfg):
+        # Disable periodic resampling so keyboard commands persist
+        env_cfg.commands.base_velocity.resampling_time_range = (1e9, 1e9)
+
     # specify directory for logging experiments
     log_root_path = os.path.join("logs", "rsl_rl", agent_cfg.experiment_name)
     log_root_path = os.path.abspath(log_root_path)
@@ -296,6 +301,17 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
     export_policy_as_jit(policy_nn, normalizer=normalizer, path=export_model_dir, filename="policy.pt")
     export_policy_as_onnx(policy_nn, normalizer=normalizer, path=export_model_dir, filename="policy.onnx")
 
+    # sync exported policy to data/policies/amp/
+    _project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    _sync_dir = os.path.join(_project_root, "data", "policies", "amp")
+    os.makedirs(_sync_dir, exist_ok=True)
+    shutil.copy(os.path.join(export_model_dir, "policy.onnx"), os.path.join(_sync_dir, "policy.onnx"))
+    print(f"[INFO] Policy synced to: {_sync_dir}/policy.onnx")
+
+    if not args_cli.headless:
+        from robolab.utils.keyboard import Keyboard
+        keyboard = Keyboard(env)  # noqa:F841
+
     dt = env.unwrapped.step_dt
 
     # reset environment
@@ -332,3 +348,4 @@ if __name__ == "__main__":
     main()
     # close sim app
     simulation_app.close()
+

@@ -109,6 +109,7 @@ import torch
 from datetime import datetime
 
 import omni
+import omni.log
 from rsl_rl.runners import DistillationRunner, OnPolicyRunner, AMPRunner
 
 from isaaclab.envs import (
@@ -251,3 +252,12 @@ if __name__ == "__main__":
     main()
     # close sim app
     simulation_app.close()
+
+#  rg -o "id=\"[^\"]+\"" -S robolab/tasks -g "__init__.py" | sed 's/id=\"//;s/\"//'
+
+#  python scripts/rsl_rl/train.py --task Atom01-Flat --num_envs 4096 --headless
+#  python scripts/rsl_rl/train.py --task E1-Flat --num_envs 4096 --headless
+#  python scripts/rsl_rl/train.py --task E1-AttnEnc --num_envs 4096 --headless
+#  python scripts/rsl_rl/train.py --task E1-Interrupt --num_envs 4096 --headless
+#  python scripts/rsl_rl/train.py --task E1-AMP --num_envs 8192 --headless
+#  python scripts/rsl_rl/train.py --task E1-BeyondMimic --num_envs 4096 --headless
