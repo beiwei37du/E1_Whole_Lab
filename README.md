@@ -16,6 +16,7 @@
 - [动作重定向工具](#动作重定向工具)
 - [可用任务一览](#可用任务一览)
 - [机器人规格](#机器人规格)
+- [References and Thanks](#references-and-thanks)
 
 ---
 
@@ -497,6 +498,20 @@ python scripts/tools/list_envs.py
 |---|---|
 | L_pitch, R_pitch, L_roll, R_roll, ... | L_pitch, L_roll, L_yaw, L_knee, ... |
 | 同侧交替排列 | 同腿连续排列 |
+
+---
+
+## References and Thanks
+
+This project repository builds upon the shoulders of giants.
+Special thanks to the following open-source projects:
+
+- [IsaacLab](https://github.com/isaac-sim/IsaacLab)
+- [rsl_rl](https://github.com/leggedrobotics/rsl_rl)
+- [legged_gym](https://github.com/leggedrobotics/legged_gym)
+- [legged_lab](https://github.com/zitongbai/legged_lab)
+- [robot_lab](https://github.com/fan-ziqi/robot_lab)
+- [Roboparty/atom01_train](https://github.com/Roboparty/atom01_train)
 
 ---
 
