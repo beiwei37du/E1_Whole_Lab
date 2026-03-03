@@ -159,8 +159,10 @@ def _expand(indices, dim):
 
 policy_obs_mirror_indices_expanded  = _expand(policy_obs_mirror_indices, _POLICY_DIM)
 policy_obs_mirror_signs_expanded    = policy_obs_mirror_signs * _HISTORY
-critic_obs_mirror_indices_expanded  = _expand(critic_obs_mirror_indices, _CRITIC_DIM)
-critic_obs_mirror_signs_expanded    = critic_obs_mirror_signs * _HISTORY
+critic_obs_mirror_indices_flat_expanded  = _expand(critic_obs_mirror_indices, _CRITIC_DIM_FLAT)
+critic_obs_mirror_signs_flat_expanded    = critic_obs_mirror_signs * _HISTORY
+critic_obs_mirror_indices_rough_expanded = _expand(critic_obs_mirror_indices_rough, _CRITIC_DIM_ROUGH)
+critic_obs_mirror_signs_rough_expanded   = critic_obs_mirror_signs_rough * _HISTORY
 
 
 @lru_cache(maxsize=None)
