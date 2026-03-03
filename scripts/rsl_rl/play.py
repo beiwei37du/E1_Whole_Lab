@@ -104,6 +104,27 @@ from isaaclab_tasks.utils.hydra import hydra_task_config
 
 import robolab.tasks
 
+
+class OnnxPolicy:
+    """Wraps an ONNX model as a callable that accepts/returns torch.Tensor."""
+
+    def __init__(self, onnx_path: str, device: str = "cuda:0"):
+        import onnxruntime as ort
+        providers = (
+            ["CUDAExecutionProvider", "CPUExecutionProvider"]
+            if "cuda" in device
+            else ["CPUExecutionProvider"]
+        )
+        self._session = ort.InferenceSession(onnx_path, providers=providers)
+        self._input_name = self._session.get_inputs()[0].name
+        self._device = device
+
+    def __call__(self, obs: torch.Tensor) -> torch.Tensor:
+        obs_np = obs.detach().cpu().numpy()
+        actions_np = self._session.run(None, {self._input_name: obs_np})[0]
+        return torch.from_numpy(actions_np).to(self._device)
+
+
 class TorchAttnEncPolicyExporter(torch.nn.Module):
     """Exporter of actor-critic into JIT file."""
 
@@ -322,62 +343,62 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
     env = RslRlVecEnvWrapper(env, clip_actions=agent_cfg.clip_actions)
 
     print(f"[INFO]: Loading model checkpoint from: {resume_path}")
-    # load previously trained model
-    if agent_cfg.class_name == "OnPolicyRunner":
-        runner = OnPolicyRunner(env, agent_cfg.to_dict(), log_dir=None, device=agent_cfg.device)
-    elif agent_cfg.class_name == "DistillationRunner":
-        runner = DistillationRunner(env, agent_cfg.to_dict(), log_dir=None, device=agent_cfg.device)
+    if resume_path.endswith(".onnx"):
+        # ── ONNX path: skip runner entirely ──────────────────────────────
+        policy = OnnxPolicy(resume_path, device=agent_cfg.device)
     else:
-        raise ValueError(f"Unsupported runner class: {agent_cfg.class_name}")
-    runner.load(resume_path)
+        # ── PyTorch checkpoint path ───────────────────────────────────────
+        if agent_cfg.class_name == "OnPolicyRunner":
+            runner = OnPolicyRunner(env, agent_cfg.to_dict(), log_dir=None, device=agent_cfg.device)
+        elif agent_cfg.class_name == "DistillationRunner":
+            runner = DistillationRunner(env, agent_cfg.to_dict(), log_dir=None, device=agent_cfg.device)
+        else:
+            raise ValueError(f"Unsupported runner class: {agent_cfg.class_name}")
+        runner.load(resume_path)
 
-    # obtain the trained policy for inference
-    policy = runner.get_inference_policy(device=env.unwrapped.device)
+        # obtain the trained policy for inference
+        policy = runner.get_inference_policy(device=env.unwrapped.device)
 
-    # extract the neural network module
-    # we do this in a try-except to maintain backwards compatibility.
-    try:
-        # version 2.3 onwards
-        policy_nn = runner.alg.policy
-    except AttributeError:
-        # version 2.2 and below
-        policy_nn = runner.alg.actor_critic
+        # extract the neural network module
+        try:
+            policy_nn = runner.alg.policy
+        except AttributeError:
+            policy_nn = runner.alg.actor_critic
 
-    # extract the normalizer
-    if hasattr(policy_nn, "actor_obs_normalizer"):
-        normalizer = policy_nn.actor_obs_normalizer
-    elif hasattr(policy_nn, "student_obs_normalizer"):
-        normalizer = policy_nn.student_obs_normalizer
-    else:
-        normalizer = None
+        # extract the normalizer
+        if hasattr(policy_nn, "actor_obs_normalizer"):
+            normalizer = policy_nn.actor_obs_normalizer
+        elif hasattr(policy_nn, "student_obs_normalizer"):
+            normalizer = policy_nn.student_obs_normalizer
+        else:
+            normalizer = None
 
-    export_model_dir = os.path.join(os.path.dirname(resume_path), "exported")
-    if not os.path.exists(export_model_dir):
+        export_model_dir = os.path.join(os.path.dirname(resume_path), "exported")
         os.makedirs(export_model_dir, exist_ok=True)
-    if hasattr(env_cfg, "attn_enc"):
-        torch_policy_exporter = TorchAttnEncPolicyExporter(policy_nn, normalizer)
-        torch_policy_exporter.export(path=export_model_dir, filename="policy.pt")
-        onnx_policy_exporter = OnnxAttnEncPolicyExporter(policy_nn, normalizer, verbose=False)
-        onnx_policy_exporter.export(path=export_model_dir, filename="policy.onnx")
-    else:
-        export_policy_as_jit(policy_nn, normalizer, path=export_model_dir, filename="policy.pt")
-        export_policy_as_onnx(
-            policy_nn, normalizer=normalizer, path=export_model_dir, filename="policy.onnx"
-        )
+        if hasattr(env_cfg, "attn_enc"):
+            torch_policy_exporter = TorchAttnEncPolicyExporter(policy_nn, normalizer)
+            torch_policy_exporter.export(path=export_model_dir, filename="policy.pt")
+            onnx_policy_exporter = OnnxAttnEncPolicyExporter(policy_nn, normalizer, verbose=False)
+            onnx_policy_exporter.export(path=export_model_dir, filename="policy.onnx")
+        else:
+            export_policy_as_jit(policy_nn, normalizer, path=export_model_dir, filename="policy.pt")
+            export_policy_as_onnx(
+                policy_nn, normalizer=normalizer, path=export_model_dir, filename="policy.onnx"
+            )
 
-    # sync exported policy to data/policies/<subdir>/
-    _TASK_POLICY_DIRS = {
-        "E1-Flat": "direct",
-        "E1-Rough": "direct",
-        "E1-AttnEnc": "attn_enc",
-        "E1-Interrupt": "interrupt",
-    }
-    _policy_subdir = _TASK_POLICY_DIRS.get(task_name, "direct")
-    _project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    _sync_dir = os.path.join(_project_root, "data", "policies", _policy_subdir)
-    os.makedirs(_sync_dir, exist_ok=True)
-    shutil.copy(os.path.join(export_model_dir, "policy.onnx"), os.path.join(_sync_dir, "policy.onnx"))
-    print(f"[INFO] Policy synced to: {_sync_dir}/policy.onnx")
+        # sync exported policy to data/policies/<subdir>/
+        _TASK_POLICY_DIRS = {
+            "E1-Flat": "direct",
+            "E1-Rough": "direct",
+            "E1-AttnEnc": "attn_enc",
+            "E1-Interrupt": "interrupt",
+        }
+        _policy_subdir = _TASK_POLICY_DIRS.get(task_name, "direct")
+        _project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        _sync_dir = os.path.join(_project_root, "data", "policies", _policy_subdir)
+        os.makedirs(_sync_dir, exist_ok=True)
+        shutil.copy(os.path.join(export_model_dir, "policy.onnx"), os.path.join(_sync_dir, "policy.onnx"))
+        print(f"[INFO] Policy synced to: {_sync_dir}/policy.onnx")
 
     if not args_cli.headless:
         from robolab.utils.keyboard import Keyboard

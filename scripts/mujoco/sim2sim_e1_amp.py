@@ -345,7 +345,7 @@ if __name__ == '__main__':
             # ang_vel(3) + projected_gravity(3) + velocity_commands(3)
             # + joint_pos_rel(12) + joint_vel_rel(12) + last_action(12) = 45
             # policy 输入 = 45 × history_length = 45 × 10 = 450
-            frame_stack    = 1   # AMP PolicyCfg.history_length = 10
+            frame_stack    = 10   # AMP PolicyCfg.history_length = 10
             num_single_obs = 45
             num_actions    = 12
             action_scale   = 0.25

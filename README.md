@@ -219,8 +219,7 @@ python scripts/rsl_rl/train.py --task E1-BeyondMimic --num_envs 4096 --headless
 ### Resume From Checkpoint
 
 ```bash
-python scripts/rsl_rl/train.py --task E1-Flat \
-    --resume --load_run xxx-xxx-xxx
+python scripts/rsl_rl/train.py --task E1-Flat --resume --load_run xxx-xxx-xxx
 ```
 
 ### Training Arguments
@@ -257,11 +256,10 @@ Playback scripts do two things at the same time:
 python scripts/rsl_rl/play.py --task E1-Flat --num_envs 4
 
 # Specify run folder and checkpoint
-python scripts/rsl_rl/play.py --task E1-Flat \
-    --load_run 2025-01-01_12-00-00 --checkpoint model_1000.pt
+python scripts/rsl_rl/play.py --task E1-Flat --load_run XXX-XXX-XXX --checkpoint model_XXX.pt
 
 # Flat-ground mode
-python scripts/rsl_rl/play.py --task E1-Rough --plane
+python scripts/rsl_rl/play.py --task E1-Rough --num_envs 4
 
 # Keyboard control (single environment)
 python scripts/rsl_rl/play.py --task E1-Flat --keyboard
@@ -275,8 +273,7 @@ python scripts/rsl_rl/play.py --task E1-Flat --num_envs 1 --real-time
 ```bash
 python scripts/rsl_rl/play_amp.py --task E1-AMP-Play --num_envs 4
 
-python scripts/rsl_rl/play_amp.py --task E1-AMP-Play \
-    --load_run 2025-01-01_12-00-00 --checkpoint model_1000.pt
+python scripts/rsl_rl/play_amp.py --task E1-AMP-Play --load_run XXX-XXX-XXX --checkpoint model_XXX.pt
 ```
 
 ### BeyondMimic
