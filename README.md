@@ -1,137 +1,152 @@
-# RoboLab — E1 双足机器人强化学习框架
+# RoboLab - E1 Bipedal Robot Reinforcement Learning Framework
 
-基于 [Isaac Lab](https://github.com/isaac-sim/IsaacLab) 与 [RSL-RL](https://github.com/leggedrobotics/rsl_rl) 的 DroidRobot E1 双足机器人强化学习训练与部署框架，支持多种学习范式（直接 RL、AMP、运动模仿）及 MuJoCo Sim2Sim 迁移。
+## Community Group
+
+![Community Group QR](docs/images/20260303-011240.jpg)
+
+A training and deployment framework for the DroidRobot E1 biped, built on [Isaac Lab](https://github.com/isaac-sim/IsaacLab) and [RSL-RL](https://github.com/leggedrobotics/rsl_rl). It supports multiple learning paradigms (direct RL, AMP, motion imitation) and MuJoCo Sim2Sim transfer.
 
 ---
 
-## 目录
+## Table of Contents
 
-- [项目结构](#项目结构)
-- [环境安装](#环境安装)
-- [整体工作流](#整体工作流)
-- [训练 Train](#训练-train)
-- [推理 Play](#推理-play)
-- [Sim2Sim 部署](#sim2sim-部署)
-- [Foxglove 可视化](#foxglove-可视化)
-- [动作重定向工具](#动作重定向工具)
-- [可用任务一览](#可用任务一览)
-- [机器人规格](#机器人规格)
+- [Demo](#demo)
+- [Project Structure](#project-structure)
+- [Environment Setup](#environment-setup)
+- [Workflow](#workflow)
+- [Training](#training)
+- [Policy Playback](#policy-playback)
+- [Sim2Sim Deployment](#sim2sim-deployment)
+- [Foxglove Visualization](#foxglove-visualization)
+- [Motion Retargeting Tools](#motion-retargeting-tools)
+- [Available Tasks](#available-tasks)
+- [Robot Specs](#robot-specs)
 - [References and Thanks](#references-and-thanks)
+- [License](#license)
 
 ---
 
-## 项目结构
+## Demo
 
-```
+| AMP | BeyondMimic |
+|---|---|
+| <img src="docs/gifs/xiaosuibu_amp.gif" alt="AMP Demo" width="320" /> | <img src="docs/gifs/MJ_dance_bm.gif" alt="BeyondMimic Demo" width="320" /> |
+
+---
+
+## Project Structure
+
+```text
 E1_Whole_Lab/
-├── robolab/                         # 主包
-│   ├── assets/robots/               # 机器人资产配置（droidrobot.py）
+├── robolab/                         # Main package
+│   ├── assets/robots/               # Robot asset config (droidrobot.py)
 │   ├── tasks/
-│   │   ├── direct/                  # 直接 RL 任务
+│   │   ├── direct/                  # Direct RL tasks
 │   │   │   ├── base/                #   E1-Flat / E1-Rough
 │   │   │   ├── attn_enc/            #   E1-AttnEnc
 │   │   │   └── interrupt/           #   E1-Interrupt
-│   │   └── manager_based/           # Manager-Based 任务
+│   │   └── manager_based/           # Manager-based tasks
 │   │       ├── amp/                 #   E1-AMP
 │   │       └── beyondmimic/         #   E1-BeyondMimic
-│   └── utils/keyboard.py            # Isaac Lab 键盘控制
+│   └── utils/keyboard.py            # Isaac Lab keyboard control
 ├── scripts/
-│   ├── rsl_rl/                      # Isaac Lab 训练与推理
-│   │   ├── train.py                 #   训练入口
-│   │   ├── play.py                  #   直接RL / AttnEnc / Interrupt 推理
-│   │   ├── play_amp.py              #   AMP 推理
-│   │   ├── play_bm.py               #   BeyondMimic 推理
-│   │   └── cli_args.py              #   公共 CLI 参数
-│   ├── mujoco/                      # Sim2Sim 部署
-│   │   ├── sim2sim_e1.py            #   直接 RL 策略
-│   │   ├── sim2sim_e1_amp.py        #   AMP 策略
-│   │   ├── sim2sim_e1_bm.py         #   BeyondMimic 策略
-│   │   ├── sim2sim_e1_attn_enc.py   #   AttnEnc 策略
-│   │   ├── sim2sim_e1_interrupt.py  #   Interrupt 策略
-│   │   ├── keyboard.py              #   数字键盘控制
-│   │   └── foxshow_data/            #   Foxglove 录制数据（.mcap）
+│   ├── rsl_rl/                      # Isaac Lab training and playback
+│   │   ├── train.py                 #   Training entry
+│   │   ├── play.py                  #   Direct RL / AttnEnc / Interrupt playback
+│   │   ├── play_amp.py              #   AMP playback
+│   │   ├── play_bm.py               #   BeyondMimic playback
+│   │   └── cli_args.py              #   Shared CLI args
+│   ├── mujoco/                      # Sim2Sim deployment
+│   │   ├── sim2sim_e1.py            #   Direct RL policy
+│   │   ├── sim2sim_e1_amp.py        #   AMP policy
+│   │   ├── sim2sim_e1_bm.py         #   BeyondMimic policy
+│   │   ├── sim2sim_e1_attn_enc.py   #   AttnEnc policy
+│   │   ├── sim2sim_e1_interrupt.py  #   Interrupt policy
+│   │   ├── keyboard.py              #   Numpad-style keyboard control
+│   │   └── foxshow_data/            #   Foxglove recordings (.mcap)
 │   └── tools/
-│       ├── foxshow.py               #   Foxglove 可视化后端
-│       ├── list_envs.py             #   列出所有注册环境
-│       ├── fix_pkl_numpy.py         #   修复动捕数据 numpy 兼容性
-│       └── retarget/                #   GMR→Lab 动作重定向
-│           ├── single_retarget.py   #     单文件转换
-│           ├── dataset_retarget.py  #     批量转换
+│       ├── foxshow.py               #   Foxglove backend
+│       ├── list_envs.py             #   List all registered environments
+│       ├── fix_pkl_numpy.py         #   Fix numpy compatibility for motion pkl files
+│       └── retarget/                #   GMR -> Lab motion retargeting
+│           ├── single_retarget.py   #     Single-file conversion
+│           ├── dataset_retarget.py  #     Batch conversion
 │           └── config/
-│               ├── e1_12dof.yaml    #     E1 12-DOF 配置
-│               └── e1_21dof.yaml    #     E1 21-DOF 配置
+│               ├── e1_12dof.yaml    #     E1 12-DOF config
+│               └── e1_21dof.yaml    #     E1 21-DOF config
 ├── data/
-│   ├── robots/droidrobot/E1/        # URDF / MuJoCo XML / STL 网格
-│   │   ├── E1_12dof.urdf / .xml     #   12-DOF 腿部模型
-│   │   └── E1_21dof.urdf / .xml     #   21-DOF 含手臂模型
-│   ├── policies/                    # 预训练 / 导出的 ONNX 策略
+│   ├── robots/droidrobot/E1/        # URDF / MuJoCo XML / STL meshes
+│   │   ├── E1_12dof.urdf / .xml     #   12-DOF leg model
+│   │   └── E1_21dof.urdf / .xml     #   21-DOF model with arms
+│   ├── policies/                    # Pretrained / exported ONNX policies
 │   │   ├── direct/policy.onnx
 │   │   ├── amp/policy.onnx
 │   │   └── bm/policy.onnx
-│   └── motions/                     # 动捕数据
-│       ├── e1_gmr/                  #   GMR 原始格式
-│       ├── e1_lab/                  #   Lab 格式（AMP 使用）
-│       └── e1_bm/                   #   BeyondMimic 格式（.npz）
-├── rsl_rl/                          # RSL-RL 子模块
+│   └── motions/                     # Motion data
+│       ├── e1_gmr/                  #   Raw GMR format
+│       ├── e1_lab/                  #   Lab format (for AMP)
+│       └── e1_bm/                   #   BeyondMimic format (.npz)
+├── rsl_rl/                          # RSL-RL submodule
 └── setup.py
 ```
 
 ---
 
-## 环境安装
+## Environment Setup
 
-### 1. 前置依赖
+### 1. Prerequisites
 
-请先按官方文档安装：
+Install the following first:
 
-- **NVIDIA Isaac Sim** (≥ 4.5)：[安装指南](https://docs.isaacsim.omniverse.nvidia.com/)
-- **Isaac Lab**：[安装指南](https://isaac-sim.github.io/IsaacLab/main/source/setup/installation/)
+- **NVIDIA Isaac Sim** (>= 4.5): [Installation Guide](https://docs.isaacsim.omniverse.nvidia.com/)
+- **Isaac Lab**: [Installation Guide](https://isaac-sim.github.io/IsaacLab/main/source/setup/installation/)
 
-安装完成后验证：
+Verification:
 
 ```bash
 python -c "import isaaclab; print('Isaac Lab OK')"
 ```
 
-### 2. 克隆仓库
+### 2. Clone the Repository
 
 ```bash
-git clone <repo_url> E1_Whole_Lab
+git clone https://github.com/beiwei37du/E1_Whole_Lab.git
 cd E1_Whole_Lab
 ```
 
-### 3. 安装本项目
+### 3. Install This Project (run in repo root)
 
 ```bash
-# 在项目根目录执行
 pip install -e .
 ```
 
-安装的依赖包（`setup.py`）：
+Dependencies from `setup.py`:
 
-| 包 | 版本 | 用途 |
+| Package | Version | Purpose |
 |---|---|---|
-| `mujoco` | `==3.3.3` | Sim2Sim 物理仿真 |
-| `mujoco-python-viewer` | 最新 | MuJoCo 渲染窗口 |
-| `psutil` | 最新 | 系统资源监控 |
-| `joblib` | `>=1.2.0` | 动捕数据加载 |
-| `pynput` | 最新 | 键盘监听 |
+| `mujoco` | `==3.3.3` | Sim2Sim physics simulation |
+| `mujoco-python-viewer` | latest | MuJoCo render window |
+| `psutil` | latest | System resource monitoring |
+| `joblib` | `>=1.2.0` | Motion data loading |
+| `pynput` | latest | Keyboard input listener |
 
-### 4. 安装 RSL-RL 子模块
+### 4. Install RSL-RL Submodule
 
 ```bash
-pip install -e rsl_rl
+git clone https://github.com/Luo1imasi/rsl_rl.git
+cd rsl_rl
+pip install -e .
 ```
 
-验证版本（需 ≥ 3.0.1）：
+Version check (must be >= 3.0.1):
 
 ```bash
 python -c "import importlib.metadata; print(importlib.metadata.version('rsl-rl-lib'))"
 ```
 
-### 5. 安装 Foxglove 可视化依赖（可选）
+### 5. Install Foxglove Dependencies (optional)
 
-Sim2Sim 中使用 `--foxshow` 参数时需要：
+Required when running Sim2Sim with `--foxshow`:
 
 ```bash
 pip install foxglove-sdk yourdfpy scipy
@@ -139,25 +154,28 @@ pip install foxglove-sdk yourdfpy scipy
 
 ---
 
-## 整体工作流
+## Workflow
 
-```
-┌─────────────┐    ┌──────────────┐    ┌──────────────────────────┐
-│  train.py   │───▶│   play*.py   │───▶│  data/policies/*/        │
-│ Isaac Lab   │    │ 导出 ONNX    │    │  policy.onnx（自动同步） │
-│ 训练策略    │    │ 并自动同步   │    └────────────┬─────────────┘
-└─────────────┘    └──────────────┘                 │
-                                                     ▼
-                                         ┌───────────────────────┐
-                                         │  scripts/mujoco/      │
-                                         │  sim2sim_e1*.py       │
-                                         │  MuJoCo 物理部署      │
-                                         └───────────────────────┘
-```
+<table>
+  <tr>
+    <td align="center"><b>train.py</b><br/>Isaac Lab<br/>Policy training</td>
+    <td align="center"><b>-&gt;</b></td>
+    <td align="center"><b>play*.py</b><br/>Export ONNX<br/>Auto-sync</td>
+    <td align="center"><b>-&gt;</b></td>
+    <td align="center"><b>data/policies/*/</b><br/>policy.onnx (auto-synced)</td>
+  </tr>
+  <tr>
+    <td></td>
+    <td></td>
+    <td></td>
+    <td align="center"><b>v</b></td>
+    <td align="center"><b>scripts/mujoco/</b><br/>sim2sim_e1*.py<br/>MuJoCo deployment</td>
+  </tr>
+</table>
 
-**play 脚本导出路径映射：**
+**Playback export path mapping:**
 
-| play 脚本 | 任务 | 自动同步至 |
+| Playback Script | Task | Auto-sync Target |
 |---|---|---|
 | `play.py` | `E1-Flat` / `E1-Rough` | `data/policies/direct/policy.onnx` |
 | `play.py` | `E1-AttnEnc` | `data/policies/attn_enc/policy.onnx` |
@@ -167,88 +185,88 @@ pip install foxglove-sdk yourdfpy scipy
 
 ---
 
-## 训练 Train
+## Training
 
-所有训练在 **项目根目录** 执行，通过 Isaac Lab 的 Python 启动：
+Run all training commands from the **project root**, using Isaac Lab Python:
 
 ```bash
 cd E1_Whole_Lab
 python scripts/rsl_rl/train.py --task <TASK_NAME> [OPTIONS]
 ```
 
-### 训练命令
+### Training Commands
 
 ```bash
-# 平地行走（Direct RL）
+# Flat terrain walking (Direct RL)
 python scripts/rsl_rl/train.py --task E1-Flat --num_envs 4096 --headless
 
-# 复杂地形行走（Direct RL）
+# Rough terrain walking (Direct RL)
 python scripts/rsl_rl/train.py --task E1-Rough --num_envs 4096 --headless
 
-# 注意力编码器（AttnEnc）
+# Attention encoder (AttnEnc)
 python scripts/rsl_rl/train.py --task E1-AttnEnc --num_envs 4096 --headless
 
-# 中断控制（Interrupt）
+# Interrupt control
 python scripts/rsl_rl/train.py --task E1-Interrupt --num_envs 4096 --headless
 
-# 对抗运动先验（AMP）
+# Adversarial Motion Prior (AMP)
 python scripts/rsl_rl/train.py --task E1-AMP --num_envs 8192 --headless
 
-# BeyondMimic 运动模仿
+# BeyondMimic motion imitation
 python scripts/rsl_rl/train.py --task E1-BeyondMimic --num_envs 4096 --headless
 ```
 
-### 从断点继续训练
+### Resume From Checkpoint
 
 ```bash
 python scripts/rsl_rl/train.py --task E1-Flat \
     --resume --load_run xxx-xxx-xxx
 ```
 
-### 训练参数说明
+### Training Arguments
 
-| 参数 | 说明 | 示例 |
+| Argument | Description | Example |
 |---|---|---|
-| `--task` | 任务名（必填） | `E1-Flat` |
-| `--num_envs` | 并行环境数 | `4096` |
-| `--headless` | 无头模式（不显示 GUI） | — |
-| `--max_iterations` | 最大训练迭代次数 | `5000` |
-| `--seed` | 随机种子（`-1` 随机） | `42` |
-| `--resume` | 从断点继续训练 | — |
-| `--load_run` | 要恢复的运行目录名 | `2025-01-01_12-00-00` |
-| `--checkpoint` | 指定 checkpoint 文件名 | `model_1000.pt` |
-| `--distributed` | 多 GPU 分布式训练 | — |
-| `--video` | 训练时录制视频 | — |
-| `--logger` | 日志后端 | `wandb` / `tensorboard` |
-| `--log_project_name` | wandb / neptune 项目名 | `e1-locomotion` |
+| `--task` | Task name (required) | `E1-Flat` |
+| `--num_envs` | Number of parallel environments | `4096` |
+| `--headless` | Run without GUI | - |
+| `--max_iterations` | Max training iterations | `5000` |
+| `--seed` | Random seed (`-1` for random) | `42` |
+| `--resume` | Resume from checkpoint | - |
+| `--load_run` | Run directory to resume | `2025-01-01_12-00-00` |
+| `--checkpoint` | Checkpoint file name | `model_1000.pt` |
+| `--distributed` | Multi-GPU distributed training | - |
+| `--video` | Record training video | - |
+| `--logger` | Logging backend | `wandb` / `tensorboard` |
+| `--log_project_name` | wandb / neptune project name | `e1-locomotion` |
 
-训练日志保存在：`logs/rsl_rl/<experiment_name>/<timestamp>/`
+Training logs are saved at: `logs/rsl_rl/<experiment_name>/<timestamp>/`
 
 ---
 
-## 推理 Play
+## Policy Playback
 
-Play 脚本同时完成两件事：
-1. 在 Isaac Lab 中渲染策略效果
-2. **自动导出 ONNX 并同步到 `data/policies/` 对应目录**
+Playback scripts do two things at the same time:
+1. Render policy behavior in Isaac Lab.
+2. **Export ONNX and auto-sync it to the matching `data/policies/` subdirectory.**
 
-### 直接 RL / AttnEnc / Interrupt
+### Direct RL / AttnEnc / Interrupt
 
 ```bash
-# 使用最新 checkpoint（有 GUI）
+# Use latest checkpoint (with GUI)
 python scripts/rsl_rl/play.py --task E1-Flat --num_envs 4
 
-# 指定运行目录和 checkpoint
+# Specify run folder and checkpoint
 python scripts/rsl_rl/play.py --task E1-Flat \
     --load_run 2025-01-01_12-00-00 --checkpoint model_1000.pt
 
-# 平坦地形模式
+# Flat-ground mode
 python scripts/rsl_rl/play.py --task E1-Rough --plane
 
-# 键盘控制（单环境）
+# Keyboard control (single environment)
 python scripts/rsl_rl/play.py --task E1-Flat --keyboard
 
-# 实时步进（对齐物理时间）
+# Real-time stepping (wall-clock synced)
 python scripts/rsl_rl/play.py --task E1-Flat --num_envs 1 --real-time
 ```
 
@@ -267,41 +285,42 @@ python scripts/rsl_rl/play_amp.py --task E1-AMP-Play \
 python scripts/rsl_rl/play_bm.py --task E1-BeyondMimic --num_envs 4
 ```
 
-导出文件会保存在：
-```
+Exported files are saved to:
+
+```text
 logs/rsl_rl/<experiment_name>/<run>/exported/
-├── policy.onnx   ← 同时自动复制到 data/policies/<subdir>/
+├── policy.onnx   <- also copied to data/policies/<subdir>/
 └── policy.pt
 ```
 
 ---
 
-## Sim2Sim 部署
+## Sim2Sim Deployment
 
-Sim2Sim 在 **MuJoCo** 中加载 ONNX 策略运行，无需 Isaac Sim / Isaac Lab。
+Sim2Sim runs ONNX policies in **MuJoCo** without requiring Isaac Sim / Isaac Lab.
 
-**控制参数：**
-- 仿真频率：1000 Hz（`dt = 0.001 s`）
-- 策略频率：50 Hz（decimation = 20）
-- 观测叠帧：10 帧（输入维度 = 10 × 45 = 450）
+**Control parameters:**
+- Simulation frequency: 1000 Hz (`dt = 0.001 s`)
+- Policy frequency: 50 Hz (decimation = 20)
+- Observation stacking: 10 frames (input dimension = 10 x 45 = 450)
 
-### 直接 RL 策略
+### Direct RL Policy
 
 ```bash
-# 默认加载 data/policies/direct/policy.onnx
+# Default model: data/policies/direct/policy.onnx
 python scripts/mujoco/sim2sim_e1.py
 
-# 指定策略文件
+# Specify policy file
 python scripts/mujoco/sim2sim_e1.py --load_model data/policies/direct/policy.onnx
 
-# 无头录制（输出 simulation_e1.mp4）
+# Headless recording (outputs simulation_e1.mp4)
 python scripts/mujoco/sim2sim_e1.py --headless
 
-# 启用 Foxglove 实时可视化
+# Enable live Foxglove visualization
 python scripts/mujoco/sim2sim_e1.py --foxshow
 ```
 
-### AMP 策略
+### AMP Policy
 
 ```bash
 python scripts/mujoco/sim2sim_e1_amp.py
@@ -309,7 +328,7 @@ python scripts/mujoco/sim2sim_e1_amp.py --load_model data/policies/amp/policy.on
 python scripts/mujoco/sim2sim_e1_amp.py --headless
 ```
 
-### BeyondMimic 策略
+### BeyondMimic Policy
 
 ```bash
 python scripts/mujoco/sim2sim_e1_bm.py
@@ -317,100 +336,100 @@ python scripts/mujoco/sim2sim_e1_bm.py --load_model data/policies/bm/policy.onnx
 python scripts/mujoco/sim2sim_e1_bm.py --headless
 ```
 
-### AttnEnc 策略
+### AttnEnc Policy
 
 ```bash
 python scripts/mujoco/sim2sim_e1_attn_enc.py
 python scripts/mujoco/sim2sim_e1_attn_enc.py --headless
 ```
 
-### Interrupt 策略
+### Interrupt Policy
 
 ```bash
 python scripts/mujoco/sim2sim_e1_interrupt.py
 python scripts/mujoco/sim2sim_e1_interrupt.py --headless
 ```
 
-### 键盘控制（数字键盘风格）
+### Keyboard Control (Numpad Style)
 
-Sim2Sim 启动后通过键盘实时控制速度指令，步进量为 0.1：
+After Sim2Sim starts, use keyboard commands to control velocity references in real time with step size `0.1`:
 
-| 按键 | 功能 | 范围 |
+| Key | Function | Range |
 |---|---|---|
-| `8` | 增加前进速度 Vx | −0.8 ~ 2.5 m/s |
-| `2` | 减少前进速度 Vx | −0.8 ~ 2.5 m/s |
-| `4` | 增加左移速度 Vy | −0.8 ~ 0.8 m/s |
-| `6` | 减少左移速度 Vy | −0.8 ~ 0.8 m/s |
-| `7` | 增加左转角速度 dYaw | −1.0 ~ 1.0 rad/s |
-| `9` | 减少左转角速度 dYaw | −1.0 ~ 1.0 rad/s |
-| `0` | 重置所有速度指令并复位机器人 | — |
+| `8` | Increase forward velocity `Vx` | `-0.8 ~ 2.5 m/s` |
+| `2` | Decrease forward velocity `Vx` | `-0.8 ~ 2.5 m/s` |
+| `4` | Increase left velocity `Vy` | `-0.8 ~ 0.8 m/s` |
+| `6` | Decrease left velocity `Vy` | `-0.8 ~ 0.8 m/s` |
+| `7` | Increase left yaw rate `dYaw` | `-1.0 ~ 1.0 rad/s` |
+| `9` | Decrease left yaw rate `dYaw` | `-1.0 ~ 1.0 rad/s` |
+| `0` | Reset all velocity commands and robot pose | - |
 
-> 当前速度会实时打印到终端：`vx: 0.30, vy: 0.00, dyaw: 0.00`
+> Current commands are printed in real time: `vx: 0.30, vy: 0.00, dyaw: 0.00`
 
-### Sim2Sim 运行完成后的输出
+### Sim2Sim Output Files
 
-仿真结束后自动生成对比图表（保存至当前目录）：
+After simulation, comparison plots are generated in the current directory:
 
-| 文件 | 内容 |
+| File | Content |
 |---|---|
-| `e1_joint_positions.png` | 12 个关节的指令位置 vs 实际位置 |
-| `e1_base_velocities.png` | Vx / Vy / dYaw 指令 vs 实际速度 |
+| `e1_joint_positions.png` | Commanded vs actual positions for 12 joints |
+| `e1_base_velocities.png` | Commanded vs actual `Vx` / `Vy` / `dYaw` |
 
-### PD 控制增益（直接 RL）
+### PD Gains (Direct RL)
 
-| 关节组 | Kp | Kd | 力矩限幅 |
+| Joint Group | Kp | Kd | Torque Limit |
 |---|---|---|---|
-| 髋俯仰 (Hip Pitch) | 150 | 3 | 60 Nm |
-| 髋滚动 (Hip Roll) | 150 | 3 | 60 Nm |
-| 髋偏转 (Hip Yaw) | 100 | 3 | 36 Nm |
-| 膝关节 (Knee) | 150 | 5 | 60 Nm |
-| 踝俯仰 (Ankle Pitch) | 20 | 2 | 60 Nm |
-| 踝滚动 (Ankle Roll) | 20 | 2 | 14 Nm |
+| Hip Pitch | 150 | 3 | 60 Nm |
+| Hip Roll | 150 | 3 | 60 Nm |
+| Hip Yaw | 100 | 3 | 36 Nm |
+| Knee | 150 | 5 | 60 Nm |
+| Ankle Pitch | 20 | 2 | 60 Nm |
+| Ankle Roll | 20 | 2 | 14 Nm |
 
 ---
 
-## Foxglove 可视化
+## Foxglove Visualization
 
-[Foxglove](https://foxglove.dev/) 用于实时可视化机器人三维状态，录制数据保存为 MCAP 格式。
+[Foxglove](https://foxglove.dev/) is used for real-time 3D robot state visualization. Recordings are stored in MCAP format.
 
-### 安装
+### Installation
 
 ```bash
 pip install foxglove-sdk yourdfpy scipy
 ```
 
-### 启用方式
+### Enable
 
-在任意 Sim2Sim 脚本中加 `--foxshow`：
+Add `--foxshow` to any Sim2Sim script:
 
 ```bash
 python scripts/mujoco/sim2sim_e1.py --foxshow
 ```
 
-启动后自动：
-1. 开启 Foxglove WebSocket 服务（`ws://localhost:8765`）
-2. 加载 E1 URDF 并发布坐标树 `/tf`
-3. 实时发布 `/joint_states`（关节位置/速度）和 `/joint_target`（目标位置）
-4. 数据录制至 `scripts/mujoco/foxshow_data/e1_YYMMDD_HHMMSS.mcap`
+On startup, the script will:
+1. Start a Foxglove WebSocket server (`ws://localhost:8765`).
+2. Load E1 URDF and publish `/tf`.
+3. Publish `/joint_states` (joint position/velocity) and `/joint_target` (target position) in real time.
+4. Record data to `scripts/mujoco/foxshow_data/e1_YYMMDD_HHMMSS.mcap`.
 
-### 连接 Foxglove Studio
+### Connect in Foxglove Studio
 
-1. 下载 [Foxglove Studio](https://foxglove.dev/download) 或打开 [app.foxglove.dev](https://app.foxglove.dev/)
-2. **Open connection** → **Foxglove WebSocket** → 填入 `ws://localhost:8765`
-3. 添加 **3D 面板** 即可看到机器人实时三维状态
+1. Download [Foxglove Studio](https://foxglove.dev/download) or open [app.foxglove.dev](https://app.foxglove.dev/).
+2. Click **Open connection** -> **Foxglove WebSocket** -> enter `ws://localhost:8765`.
+3. Add a **3D** panel to view the robot state in real time.
 
-### 回放 MCAP 录制文件
+### Replay MCAP
 
-1. Foxglove Studio → **Open local file**
-2. 选择 `scripts/mujoco/foxshow_data/*.mcap`
+1. In Foxglove Studio, click **Open local file**.
+2. Select `scripts/mujoco/foxshow_data/*.mcap`.
 
 ---
 
-## 动作重定向工具
+## Motion Retargeting Tools
 
-将外部 GMR 格式动捕数据转换为 Isaac Lab 可用的 `.pkl` 格式，用于 AMP / BeyondMimic 训练。
+Convert external GMR-format motion data into Isaac Lab compatible `.pkl` format for AMP / BeyondMimic training.
 
-### 单文件转换
+### Single File Conversion
 
 ```bash
 python scripts/tools/retarget/single_retarget.py \
@@ -420,7 +439,7 @@ python scripts/tools/retarget/single_retarget.py \
     --config_file scripts/tools/retarget/config/e1_12dof.yaml \
     --headless
 
-# 指定帧范围并设置循环模式
+# Specify frame range and loop mode
 python scripts/tools/retarget/single_retarget.py \
     --robot e1 \
     --input_file  data/motions/e1_gmr/walk.pkl \
@@ -429,7 +448,7 @@ python scripts/tools/retarget/single_retarget.py \
     --frame_range 10 100 --loop wrap --headless
 ```
 
-### 批量转换
+### Batch Conversion
 
 ```bash
 python scripts/tools/retarget/dataset_retarget.py \
@@ -440,64 +459,64 @@ python scripts/tools/retarget/dataset_retarget.py \
     --loop clamp
 ```
 
-### 修复动捕数据 numpy 兼容性
+### Fix Numpy Compatibility for Motion Files
 
-若 `.pkl` 文件因 numpy 版本差异加载失败，运行：
+If `.pkl` files fail to load because of numpy version differences, run:
 
 ```bash
 python scripts/tools/fix_pkl_numpy.py
-# 自动处理 data/motions/e1_lab/ 下所有 .pkl 文件
+# Automatically processes all .pkl files under data/motions/e1_lab/
 ```
 
 ---
 
-## 可用任务一览
+## Available Tasks
 
 ```bash
-# 列出所有已注册环境
+# List all registered environments
 python scripts/tools/list_envs.py
 ```
 
-| 任务名称 | 类型 | play 脚本 | 说明 | 推荐并行环境数 |
+| Task Name | Type | Playback Script | Description | Recommended `num_envs` |
 |---|---|---|---|---|
-| `E1-Flat` | Direct RL | `play.py` | 平地行走 | 4096 |
-| `E1-Rough` | Direct RL | `play.py` | 复杂地形行走 | 4096 |
-| `E1-AttnEnc` | Direct RL | `play.py` | 注意力编码器 | 4096 |
-| `E1-Interrupt` | Direct RL | `play.py` | 中断控制 | 4096 |
-| `E1-AMP` | Manager-Based | `play_amp.py` | 对抗运动先验 | 8192 |
-| `E1-AMP-Play` | Manager-Based | `play_amp.py` | AMP 推理专用 | — |
-| `E1-BeyondMimic` | Manager-Based | `play_bm.py` | BeyondMimic 运动模仿 | 4096 |
+| `E1-Flat` | Direct RL | `play.py` | Flat terrain locomotion | 4096 |
+| `E1-Rough` | Direct RL | `play.py` | Rough terrain locomotion | 4096 |
+| `E1-AttnEnc` | Direct RL | `play.py` | Attention encoder policy | 4096 |
+| `E1-Interrupt` | Direct RL | `play.py` | Interrupt control policy | 4096 |
+| `E1-AMP` | Manager-Based | `play_amp.py` | Adversarial Motion Prior training | 8192 |
+| `E1-AMP-Play` | Manager-Based | `play_amp.py` | AMP playback-only task | - |
+| `E1-BeyondMimic` | Manager-Based | `play_bm.py` | BeyondMimic motion imitation | 4096 |
 
 ---
 
-## 机器人规格
+## Robot Specs
 
 **DroidRobot E1**
 
-| 参数 | 值 |
+| Parameter | Value |
 |---|---|
-| 自由度 | 12 DOF（腿部），另有 21 DOF 含手臂版本 |
-| 质量 | 约 26 kg |
-| 关节分布 | 左/右各：髋俯仰、髋滚动、髋偏转、膝关节、踝俯仰、踝滚动 |
-| 默认站立姿态 | `[−0.1, 0, 0, 0.2, −0.1, 0]`（左/右腿，弧度） |
+| DOF | 12 DOF (legs), plus a 21-DOF variant with arms |
+| Mass | About 26 kg |
+| Joint Layout | Left/Right each: hip pitch, hip roll, hip yaw, knee, ankle pitch, ankle roll |
+| Default Standing Pose | `[-0.1, 0, 0, 0.2, -0.1, 0]` (per leg, in radians) |
 
-**观测空间（45 维，叠帧 10 次，最终输入 450 维）：**
+**Observation Space (45D, stacked for 10 frames, final input 450D):**
 
-| 维度 | 内容 |
+| Dimension | Content |
 |---|---|
-| 0–2 | 角速度 ω（机体系） |
-| 3–5 | 重力向量投影 |
-| 6–8 | 速度指令（Vx, Vy, dYaw） |
-| 9–20 | 关节位置（Isaac Lab 顺序，12 维） |
-| 21–32 | 关节速度（12 维） |
-| 33–44 | 上一步动作（12 维） |
+| 0-2 | Angular velocity `omega` (body frame) |
+| 3-5 | Projected gravity vector |
+| 6-8 | Velocity command (`Vx`, `Vy`, `dYaw`) |
+| 9-20 | Joint positions (Isaac Lab order, 12D) |
+| 21-32 | Joint velocities (12D) |
+| 33-44 | Previous action (12D) |
 
-**关节顺序对比：**
+**Joint Order Comparison:**
 
-| Isaac Lab 顺序 | MuJoCo 顺序 |
+| Isaac Lab Order | MuJoCo Order |
 |---|---|
 | L_pitch, R_pitch, L_roll, R_roll, ... | L_pitch, L_roll, L_yaw, L_knee, ... |
-| 同侧交替排列 | 同腿连续排列 |
+| Alternating left/right layout | Grouped by leg |
 
 ---
 
@@ -508,6 +527,7 @@ Special thanks to the following open-source projects:
 
 - [IsaacLab](https://github.com/isaac-sim/IsaacLab)
 - [rsl_rl](https://github.com/leggedrobotics/rsl_rl)
+- [Luo1imasi/rsl_rl](https://github.com/Luo1imasi/rsl_rl.git)
 - [legged_gym](https://github.com/leggedrobotics/legged_gym)
 - [legged_lab](https://github.com/zitongbai/legged_lab)
 - [robot_lab](https://github.com/fan-ziqi/robot_lab)
@@ -515,8 +535,8 @@ Special thanks to the following open-source projects:
 
 ---
 
-## 许可证
+## License
 
-Copyright (c) 2022–2025, The Isaac Lab Project Developers.
-Copyright (c) 2025–2026, The RoboLab Project Developers.
+Copyright (c) 2022-2025, The Isaac Lab Project Developers.
+Copyright (c) 2025-2026, The RoboLab Project Developers.
 Licensed under [BSD-3-Clause](LICENSE).
