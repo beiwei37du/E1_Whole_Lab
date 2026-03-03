@@ -389,6 +389,8 @@ After simulation, comparison plots are generated in the current directory:
 
 [Foxglove](https://foxglove.dev/) is used for real-time 3D robot state visualization. Recordings are stored in MCAP format.
 
+![Foxglove Visualization Demo](docs/gifs/Foxglove.gif)
+
 ### Installation
 
 ```bash

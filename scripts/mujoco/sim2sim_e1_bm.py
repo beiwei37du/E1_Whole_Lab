@@ -39,17 +39,22 @@ python scripts/mujoco/sim2sim_e1_bm.py \
       --motion_file file_path
       --loop
 """
+import os
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+
 import numpy as np
 import mujoco, mujoco_viewer
 from tqdm import tqdm
 from scipy.spatial.transform import Rotation as R
 import onnxruntime as ort
-import os
 import cv2
 import time
 from pynput import keyboard
 from loop_rate_limiters import RateLimiter
 from robolab.assets import ISAAC_DATA_DIR
+from scripts.tools.foxshow import FoxShow
 
 
 class Cmd:
@@ -99,7 +104,7 @@ def pd_control(target_q, q, kp, target_dq, dq, kd):
     return (target_q - q) * kp + (target_dq - dq) * kd
 
 
-def run_mujoco(policy, cfg, headless=False, loop=False, motion_file=None):
+def run_mujoco(policy, cfg, headless=False, loop=False, motion_file=None, foxshow=False):
     """
     Run the MuJoCo simulation with the E1 BeyondMimic policy.
 
@@ -165,6 +170,14 @@ def run_mujoco(policy, cfg, headless=False, loop=False, motion_file=None):
         viewer.cam.lookat    = [0, 0, 1.0]
 
     num_actions = cfg.robot_config.num_actions
+
+    if foxshow:
+        urdf_path = cfg.sim_config.mujoco_model_path.replace('.xml', '.urdf')
+        fox = FoxShow(urdf_path)
+        fox_joint_names = fox.get_joint_names()
+        mujoco_joint_names = [model.joint(i).name for i in range(1, 1 + num_actions)]
+        urdf_to_mujoco = [mujoco_joint_names.index(name) for name in fox_joint_names]
+
     target_pos  = np.zeros(num_actions, dtype=np.double)
     action      = np.zeros(num_actions, dtype=np.double)   # Isaac Lab order
     tau         = np.zeros(num_actions, dtype=np.double)
@@ -267,6 +280,17 @@ def run_mujoco(policy, cfg, headless=False, loop=False, motion_file=None):
                 target_pos[mujoco_idx] = target_q[isaac_idx]
             target_pos_abs = target_pos + cfg.robot_config.default_pos
 
+            if foxshow:
+                tic = int(step * cfg.sim_config.dt * 1000)
+                fox.update_robot_state(
+                    tic=tic,
+                    pos=q[urdf_to_mujoco],
+                    vel=dq[urdf_to_mujoco],
+                    trans=data.xpos[model.body('pelvis').id].tolist(),
+                    quat=quat,
+                )
+                fox.update_robot_target(tic=tic, pos=target_pos_abs[urdf_to_mujoco])
+
             # Render
             if headless:
                 renderer.update_scene(data, camera=cam)
@@ -303,6 +327,8 @@ def run_mujoco(policy, cfg, headless=False, loop=False, motion_file=None):
     else:
         viewer.close()
     keyboard_listener.stop()
+    if foxshow:
+        fox.stop_server()
     print("Simulation finished.")
 
 
@@ -319,6 +345,8 @@ if __name__ == '__main__':
                         help='Render offscreen and save simulation_e1_bm.mp4')
     parser.add_argument('--loop', action='store_true',
                         help='Loop the reference motion indefinitely')
+    parser.add_argument('--foxshow', action='store_true',
+                        help='Enable Foxglove real-time visualization')
     args = parser.parse_args()
 
     policy_model = args.policy_model
@@ -401,4 +429,4 @@ if __name__ == '__main__':
             # policy input   = 1110 (111 × 10)
 
     policy = ort.InferenceSession(policy_model)
-    run_mujoco(policy, Sim2simCfg(), args.headless, args.loop, motion_file)
+    run_mujoco(policy, Sim2simCfg(), args.headless, args.loop, motion_file, args.foxshow)

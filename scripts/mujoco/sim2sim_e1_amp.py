@@ -4,17 +4,22 @@
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
+import os
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+
 import numpy as np
 import mujoco, mujoco_viewer
 from tqdm import tqdm
 from scipy.spatial.transform import Rotation as R
 import onnxruntime as ort
-import os
 import time
 import cv2
 import matplotlib.pyplot as plt
 from robolab.assets import ISAAC_DATA_DIR
 from scripts.mujoco.keyboard import KeyboardCommand, print_keyboard_instructions
+from scripts.tools.foxshow import FoxShow
 
 
 def get_obs(data):
@@ -34,7 +39,7 @@ def pd_control(target_q, q, kp, target_dq, dq, kd):
     return (target_q - q) * kp + (target_dq - dq) * kd
 
 
-def run_mujoco(policy, cfg, headless=False):
+def run_mujoco(policy, cfg, headless=False, foxshow=False):
     print_keyboard_instructions()
     cmd = KeyboardCommand(
         min_vx=cfg.cmd_config.min_vx, max_vx=cfg.cmd_config.max_vx,
@@ -75,6 +80,14 @@ def run_mujoco(policy, cfg, headless=False):
         viewer.cam.lookat    = [0, 0, 0.8]
 
     num_actions = cfg.robot_config.num_actions
+
+    if foxshow:
+        urdf_path = cfg.sim_config.mujoco_model_path.replace('.xml', '.urdf')
+        fox = FoxShow(urdf_path)
+        fox_joint_names = fox.get_joint_names()
+        mujoco_joint_names = [model.joint(i).name for i in range(1, 1 + num_actions)]
+        urdf_to_mujoco = [mujoco_joint_names.index(name) for name in fox_joint_names]
+
     target_pos  = np.zeros(num_actions, dtype=np.double)
     action      = np.zeros(num_actions, dtype=np.double)
     tau         = np.zeros(num_actions, dtype=np.double)
@@ -193,6 +206,17 @@ def run_mujoco(policy, cfg, headless=False):
             actual_lin_vel_data.append(v[:2].copy())
             actual_ang_vel_data.append(omega[2].copy())
 
+            if foxshow:
+                tic = int(step * cfg.sim_config.dt * 1000)
+                fox.update_robot_state(
+                    tic=tic,
+                    pos=q[urdf_to_mujoco],
+                    vel=dq[urdf_to_mujoco],
+                    trans=data.xpos[model.body('pelvis').id].tolist(),
+                    quat=quat,
+                )
+                fox.update_robot_target(tic=tic, pos=target_pos_abs[urdf_to_mujoco])
+
             # 渲染
             if headless:
                 renderer.update_scene(data, camera=cam)
@@ -228,6 +252,8 @@ def run_mujoco(policy, cfg, headless=False):
     else:
         viewer.close()
     cmd.stop()
+    if foxshow:
+        fox.stop_server()
 
     # ── 绘图 ──────────────────────────────────────────────────────────────────
     print("Simulation finished. Generating plots...")
@@ -296,6 +322,8 @@ if __name__ == '__main__':
                         help='Path to exported policy.onnx (ONNX Runtime)')
     parser.add_argument('--headless', action='store_true',
                         help='Run without GUI and save video')
+    parser.add_argument('--foxshow', action='store_true',
+                        help='Enable Foxglove real-time visualization')
     args = parser.parse_args()
 
     class Sim2simCfg:
@@ -363,4 +391,4 @@ if __name__ == '__main__':
         policy_model = os.path.join(ISAAC_DATA_DIR, 'policies', 'amp', 'policy.onnx')
 
     policy = ort.InferenceSession(policy_model)
-    run_mujoco(policy, Sim2simCfg(), args.headless)
+    run_mujoco(policy, Sim2simCfg(), args.headless, args.foxshow)
