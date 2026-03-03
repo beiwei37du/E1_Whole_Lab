@@ -1,3 +1,6 @@
 [submodule "robolab/assets/roboparty/atom01"]
 	path = data/robots/roboparty/atom01
 	url = https://github.com/Roboparty/atom01_description.git
+[submodule "rsl_rl"]
+	path = rsl_rl
+	url = https://github.com/Luo1imasi/rsl_rl.git
